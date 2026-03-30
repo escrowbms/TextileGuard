@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 243.4 75.4% 58.6%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 20% 92%;
+    --muted-foreground: 215.4 16.3% 40%;
+    --accent: 161 72% 35%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 90%;
+    --input: 214.3 31.8% 90%;
+    --ring: 243.4 75.4% 58.6%;
+    --radius: 1.25rem;
+    --glass-bg: 0 0% 100% / 0.6;
+    --glass-border: 0 0% 0% / 0.05;
+    
+    /* Mobile App Safe Areas */
+    --sab: env(safe-area-inset-bottom);
+    --sat: env(safe-area-inset-top);
+  }
+
+  .dark {
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 6%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 5%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 243.4 75.4% 58.6%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 12%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 12%;
+    --muted-foreground: 215 20.2% 60%;
+    --accent: 161 72% 45%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 40%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 15%;
+    --input: 217.2 32.6% 15%;
+    --ring: 243.4 75.4% 58.6%;
+    --glass-bg: 222 47% 6% / 0.6;
+    --glass-border: 210 40% 98% / 0.08;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(var(--primary) / 0.03) 0, transparent 40%),
+      radial-gradient(at 100% 0%, hsla(var(--accent) / 0.02) 0, transparent 40%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-[hsla(var(--glass-bg))] backdrop-blur-xl border border-[hsla(var(--glass-border))] shadow-2xl;
+  }
+  
+  .glass-hover {
+    @apply hover:bg-[hsla(var(--glass-bg)/0.6)] transition-all duration-300;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-indigo-500 to-emerald-500 dark:from-indigo-400 dark:to-emerald-400;
+  }
+}
