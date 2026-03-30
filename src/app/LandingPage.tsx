@@ -22,12 +22,12 @@ const LandingPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-primary selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-white overflow-x-hidden">
       {/* ── Navbar ────────────────────────────────────────────────────────────── */}
       <nav className={cn(
         "fixed top-0 left-0 right-0 z-[60] transition-all duration-500 border-b",
         scrolled || mobileMenuOpen
-          ? "py-4 bg-slate-950/80 backdrop-blur-xl border-white/10"
+          ? "py-4 bg-background/80 backdrop-blur-xl border-border"
           : "py-6 bg-transparent border-transparent"
       )}>
         <div className="container mx-auto px-6 flex items-center justify-between">
@@ -36,20 +36,20 @@ const LandingPage: React.FC = () => {
               <Shield className="text-white w-5 h-5" />
             </div>
             <div>
-              <span className="font-black text-xl tracking-tighter block leading-none text-white">TextileGuard</span>
+              <span className="font-black text-xl tracking-tighter block leading-none text-foreground">TextileGuard</span>
               <span className="text-[8px] uppercase tracking-[0.3em] text-primary/60 font-black">Industrial Shield</span>
             </div>
           </div>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-bold text-slate-400 hover:text-white transition-colors">Features</a>
-            <a href="#pricing" className="text-sm font-bold text-slate-400 hover:text-white transition-colors">Enterprise</a>
-            <div className="w-px h-4 bg-white/10" />
+            <a href="#features" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">Features</a>
+            <a href="#pricing" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">Enterprise</a>
+            <div className="w-px h-4 bg-border" />
             <ThemeToggle />
             <button
               onClick={() => navigate('/login')}
-              className="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-bold transition-all hover:translate-y-[-2px] active:scale-95"
+              className="px-6 py-2.5 bg-secondary hover:bg-secondary/80 border border-border rounded-xl text-sm font-bold transition-all hover:translate-y-[-2px] active:scale-95 text-foreground"
             >
               Sign In
             </button>
@@ -66,7 +66,7 @@ const LandingPage: React.FC = () => {
             <ThemeToggle />
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-400 hover:text-white transition-colors"
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -80,18 +80,18 @@ const LandingPage: React.FC = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-slate-950 border-t border-white/10 overflow-hidden"
+              className="md:hidden bg-background border-t border-border overflow-hidden"
             >
               <div className="p-6 space-y-6">
                 <div className="flex flex-col gap-4">
-                  <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white">Features</a>
-                  <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white">Enterprise</a>
+                  <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-foreground">Features</a>
+                  <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-foreground">Enterprise</a>
                 </div>
-                <div className="h-px bg-white/10" />
+                <div className="h-px bg-border" />
                 <div className="flex flex-col gap-3">
                   <button
                     onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
-                    className="w-full py-4 bg-white/5 border border-white/10 rounded-xl text-white font-bold"
+                    className="w-full py-4 bg-secondary border border-border rounded-xl text-foreground font-bold"
                   >
                     Sign In
                   </button>
@@ -134,7 +134,7 @@ const LandingPage: React.FC = () => {
                 </span>
               </h1>
 
-              <p className="text-lg md:text-2xl text-slate-400 font-bold leading-relaxed max-w-2xl mb-12">
+              <p className="text-lg md:text-2xl text-muted-foreground font-bold leading-relaxed max-w-2xl mb-12">
                 {STATIC_DETAILS.description}
               </p>
 
@@ -145,7 +145,7 @@ const LandingPage: React.FC = () => {
                 >
                   Launch Dashboard <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="w-full sm:w-auto px-8 py-5 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl font-black text-sm uppercase tracking-widest text-slate-300 hover:text-white hover:bg-white/5 transition-all hover:translate-y-[-4px] active:scale-95">
+                <button className="w-full sm:w-auto px-8 py-5 bg-secondary/50 backdrop-blur-xl border border-border rounded-2xl font-black text-sm uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:translate-y-[-4px] active:scale-95">
                   View Case Studies
                 </button>
               </div>
@@ -162,7 +162,7 @@ const LandingPage: React.FC = () => {
             className="relative w-full h-full"
           >
             {/* Main Card */}
-            <div className="absolute top-[10%] left-[10%] w-[500px] h-[300px] bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 rounded-[2.5rem] shadow-2xl backdrop-blur-2xl p-10 overflow-hidden">
+            <div className="absolute top-[10%] left-[10%] w-[500px] h-[300px] bg-gradient-to-br from-background to-secondary border border-border rounded-[2.5rem] shadow-2xl backdrop-blur-2xl p-10 overflow-hidden">
               <div className="absolute top-0 right-0 w-40 h-40 bg-primary/20 blur-[80px] rounded-full" />
               <div className="relative z-10 flex flex-col h-full justify-between">
                 <div className="flex justify-between items-start">
@@ -208,7 +208,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* ── Stats Section ─────────────────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-slate-950 relative z-10">
+      <section className="py-16 md:py-24 bg-background relative z-10">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 sm:gap-8">
             {[
@@ -225,7 +225,7 @@ const LandingPage: React.FC = () => {
                 transition={{ delay: i * 0.1 }}
                 className="text-center sm:text-left md:text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl md:bg-transparent md:border-0 md:p-0"
               >
-                <h3 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tighter">{stat.val}</h3>
+                <h3 className="text-4xl md:text-5xl font-black text-foreground mb-2 tracking-tighter">{stat.val}</h3>
                 <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">{stat.label}</p>
               </motion.div>
             ))}
@@ -234,11 +234,11 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* ── Features Section ──────────────────────────────────────────────────── */}
-      <section id="features" className="py-32 bg-slate-900/30 relative">
+      <section id="features" className="py-32 bg-muted/30 relative">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mb-24">
             <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6">Built for the Heavy Industry.</h2>
-            <p className="text-xl text-slate-400 font-bold leading-relaxed">
+            <p className="text-xl text-muted-foreground font-bold leading-relaxed">
               We don't just track invoices. We enforce payment discipline using systematic algorithms designed specifically for the complex textile supply chain.
             </p>
           </div>
@@ -256,8 +256,8 @@ const LandingPage: React.FC = () => {
                 <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-primary transition-all">
                   <feature.icon className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
                 </div>
-                <h3 className="text-xl font-black text-white mb-4 tracking-tight">{feature.title}</h3>
-                <p className="text-sm font-bold text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">{feature.desc}</p>
+                <h3 className="text-xl font-black text-foreground mb-4 tracking-tight">{feature.title}</h3>
+                <p className="text-sm font-bold text-muted-foreground leading-relaxed group-hover:text-foreground transition-colors">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -279,12 +279,12 @@ const LandingPage: React.FC = () => {
                 { icon: Cpu, title: "ERP Integration", desc: "Seamlessly syncs with your existing billing software to pull data and push blocks automatically." }
               ].map((item, i) => (
                 <div key={i} className="flex gap-6">
-                  <div className="shrink-0 w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center">
+                  <div className="shrink-0 w-12 h-12 bg-secondary border border-border rounded-xl flex items-center justify-center">
                     <item.icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h4 className="text-lg font-black text-white mb-2 tracking-tight">{item.title}</h4>
-                    <p className="text-sm font-bold text-slate-400 max-w-sm">{item.desc}</p>
+                    <h4 className="text-lg font-black text-foreground mb-2 tracking-tight">{item.title}</h4>
+                    <p className="text-sm font-bold text-muted-foreground max-w-sm">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -313,9 +313,9 @@ const LandingPage: React.FC = () => {
                   <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
                   <span className="text-[10px] font-black uppercase tracking-[0.2em]">Operational Pulse</span>
                 </div>
-                <p className="text-xs font-bold text-slate-400 leading-relaxed font-mono">
-                  Current Market Risk: <span className="text-emerald-400">LOW</span> <br />
-                  System Integrity: <span className="text-emerald-400">OPTIMAL</span> <br />
+                <p className="text-xs font-bold text-muted-foreground leading-relaxed font-mono">
+                  Current Market Risk: <span className="text-emerald-400 font-black">LOW</span> <br />
+                  System Integrity: <span className="text-emerald-400 font-black">OPTIMAL</span> <br />
                   Last Scan: 2 mins ago
                 </p>
               </div>
@@ -357,7 +357,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* ── Footer ────────────────────────────────────────────────────────────── */}
-      <footer className="py-20 border-t border-white/5 bg-slate-950 relative z-10">
+      <footer className="py-20 border-t border-border bg-background relative z-10">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-12 mb-20">
             <div className="col-span-2 space-y-8">
@@ -365,9 +365,9 @@ const LandingPage: React.FC = () => {
                 <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
                   <Shield className="text-white w-5 h-5" />
                 </div>
-                <span className="font-black text-xl tracking-tighter">TextileGuard</span>
+                <span className="font-black text-xl tracking-tighter text-foreground">TextileGuard</span>
               </div>
-              <p className="text-sm font-bold text-slate-500 max-w-sm leading-relaxed">
+              <p className="text-sm font-bold text-muted-foreground max-w-sm leading-relaxed">
                 The definitive credit control platform for the modern textile manufacturing sector. Protecting liquidity through systematic discipline.
               </p>
               <div className="flex gap-4">

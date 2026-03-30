@@ -20,12 +20,12 @@
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 90%;
-    --input: 214.3 31.8% 90%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
     --ring: 243.4 75.4% 58.6%;
     --radius: 1.25rem;
-    --glass-bg: 0 0% 100% / 0.6;
-    --glass-border: 0 0% 0% / 0.05;
+    --glass-bg: 0 0% 100% / 0.8;
+    --glass-border: 220 13% 91% / 0.5;
     
     /* Mobile App Safe Areas */
     --sab: env(safe-area-inset-bottom);

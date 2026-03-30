@@ -25,7 +25,7 @@ export const STATIC_DETAILS = {
 
 export const AnimatedBackground = ({ type }: { type: string }) => {
   return (
-    <div className="absolute inset-0 overflow-hidden bg-slate-950" style={{ perspective: "1200px" }}>
+    <div className="absolute inset-0 overflow-hidden bg-background" style={{ perspective: "1200px" }}>
       {/* Dynamic Radial Glow */}
       <motion.div 
         animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3], rotate: [0, 90, 0] }}
@@ -102,7 +102,7 @@ export const AnimatedBackground = ({ type }: { type: string }) => {
 
       {/* Industrial Grain Overlay */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('data:image/svg+xml,%3Csvg%20viewBox=%220%200%20200%20200%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter%20id=%22noiseFilter%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.65%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] contrast-150 brightness-150" />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
     </div>
   );
 };

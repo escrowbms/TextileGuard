@@ -27,7 +27,7 @@ import { SLIDES, STATIC_DETAILS, AnimatedBackground } from '@/components/Industr
 // ── Left Panel Slider ─────────────────────────────────────────────────────────
 function LeftPanel({ current }: { current: number }) {
   return (
-    <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-950">
+    <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-background">
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
@@ -50,7 +50,7 @@ function LeftPanel({ current }: { current: number }) {
                 <Shield className="text-white w-6 h-6" />
              </div>
              <div>
-                <span className="font-black text-2xl tracking-tighter block leading-none text-white">TextileGuard</span>
+                <span className="font-black text-2xl tracking-tighter block leading-none text-foreground">TextileGuard</span>
                 <span className="text-[10px] uppercase tracking-[0.3em] text-primary/60 font-black">Professional Industrial Shield</span>
              </div>
           </div>
@@ -60,7 +60,7 @@ function LeftPanel({ current }: { current: number }) {
               key={`h2-${current}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-5xl font-black text-white leading-[0.9] tracking-tight text-balance"
+              className="text-5xl font-black text-foreground leading-[0.9] tracking-tight text-balance"
             >
               {STATIC_DETAILS.title}
             </motion.h2>
@@ -69,7 +69,7 @@ function LeftPanel({ current }: { current: number }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-xl text-slate-300 font-bold leading-relaxed max-w-lg"
+              className="text-xl text-muted-foreground font-bold leading-relaxed max-w-lg"
             >
               {STATIC_DETAILS.description}
             </motion.p>
@@ -82,14 +82,14 @@ function LeftPanel({ current }: { current: number }) {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 + (i * 0.1) }}
-                className="flex items-start gap-4 bg-white/5 backdrop-blur-xl p-5 rounded-[2rem] border border-white/10 group hover:bg-white/10 transition-all hover:translate-y-[-4px]"
+                className="flex items-start gap-4 glass backdrop-blur-xl p-5 rounded-[2rem] border border-border group hover:bg-secondary transition-all hover:translate-y-[-4px]"
               >
                 <div className="bg-primary/20 p-2.5 rounded-xl group-hover:scale-110 transition-transform shrink-0">
                   <feature.icon className="w-6 h-6 text-primary" />
                 </div>
                 <div className="space-y-1.5">
-                  <h3 className="font-black text-slate-100 text-sm tracking-tight">{feature.title}</h3>
-                  <p className="text-[11px] text-slate-400 leading-relaxed font-bold">{feature.desc}</p>
+                  <h3 className="font-black text-foreground text-sm tracking-tight">{feature.title}</h3>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed font-bold">{feature.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -102,7 +102,7 @@ function LeftPanel({ current }: { current: number }) {
             <div
               key={i}
               className={`h-2 transition-all duration-500 rounded-full ${
-                current === i ? 'w-12 bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)]' : 'w-2 bg-white/20'
+                current === i ? 'w-12 bg-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)]' : 'w-2 bg-muted'
               }`}
             />
           ))}
