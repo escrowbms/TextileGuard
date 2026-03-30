@@ -15,6 +15,7 @@ import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/lib/auth-context';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -38,25 +39,27 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <AuthProvider>
-        <Toaster position="top-right" richColors />
-        <Routes>
-          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
-          
-          <Route path="/dashboard" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="invoices" element={<InvoicesPage />} />
-            <Route path="customers" element={<CustomersPage />} />
-            <Route path="customers/:id" element={<CustomerDetailPage />} />
-            <Route path="escalations" element={<EscalationsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="import" element={<ImportPage />} />
-            <Route path="reminders" element={<RemindersPage />} />
-          </Route>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+        <AuthProvider>
+          <Toaster position="top-right" richColors />
+          <Routes>
+            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
+            
+            <Route path="/dashboard" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="invoices" element={<InvoicesPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="customers/:id" element={<CustomerDetailPage />} />
+              <Route path="escalations" element={<EscalationsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="import" element={<ImportPage />} />
+              <Route path="reminders" element={<RemindersPage />} />
+            </Route>
 
-          <Route path="/" element={<LandingPage />} />
-        </Routes>
-      </AuthProvider>
+            <Route path="/" element={<LandingPage />} />
+          </Routes>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 };

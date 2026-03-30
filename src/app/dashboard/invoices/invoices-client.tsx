@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, Download, ArrowUpRight, FileText, X, Receipt, Calendar, User, Info, ArrowRight, Database } from "lucide-react";
+import { Search, Plus, Download, ArrowUpRight, FileText, X, Receipt, Calendar, User, Info, ArrowRight, Database, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { createInvoice } from "@/services/invoices";
 import { checkCreditStatus, CreditStatus } from "@/services/customers";
@@ -229,9 +229,20 @@ export function InvoicesClient({
                 </div>
 
                 <div className="pt-8 border-t border-border">
+                  {selectedCustomerStatus?.isFrozen && (
+                    <div className="mb-6 p-4 bg-ruby-500/10 border border-ruby-500/20 rounded-2xl flex items-start gap-4 animate-pulse">
+                      <ShieldAlert className="w-6 h-6 text-ruby-500 flex-shrink-0" />
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-tighter text-ruby-500">Enforcement Block Active</p>
+                        <p className="text-xs font-bold text-ruby-700/80 mt-0.5">{selectedCustomerStatus.reason}</p>
+                      </div>
+                    </div>
+                  )}
+
                   <button
-                    type="submit" disabled={loading}
-                    className="w-full py-4 bg-primary text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/25 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                    type="submit" 
+                    disabled={loading || selectedCustomerStatus?.isFrozen}
+                    className="w-full py-5 bg-primary text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/25 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-30 disabled:grayscale disabled:hover:translate-y-0 disabled:cursor-not-allowed"
                   >
                     {loading
                       ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

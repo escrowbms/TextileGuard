@@ -22,11 +22,11 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 interface CompanySettings {
-  interest_rate: number;
-  grace_period: number;
+  enforce_credit_limit: boolean;
+  credit_grace_percent: number;
+  auto_freeze_days: number;
+  default_interest_rate: number;
   auto_whatsapp: boolean;
-  block_overdue_threshold: number;
-  reminder_frequency: 'daily' | 'weekly' | 'custom';
 }
 
 export default function SettingsClient() {
@@ -35,11 +35,11 @@ export default function SettingsClient() {
   const [saving, setSaving] = useState(false);
   const [company, setCompany] = useState<any>(null);
   const [settings, setSettings] = useState<CompanySettings>({
-    interest_rate: 18,
-    grace_period: 7,
+    enforce_credit_limit: false,
+    credit_grace_percent: 5,
+    auto_freeze_days: 90,
+    default_interest_rate: 18,
     auto_whatsapp: true,
-    block_overdue_threshold: 100000,
-    reminder_frequency: 'daily',
   });
 
   useEffect(() => {
@@ -152,46 +152,71 @@ export default function SettingsClient() {
                 <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500">
                   <ShieldAlert className="w-6 h-6" />
                 </div>
-                <h2 className="text-xl font-bold italic">Enforcement Logic</h2>
+                <h2 className="text-xl font-bold italic">Control & Enforcement</h2>
              </div>
 
-             <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                   <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-2">
-                       <Percent className="w-4 h-4 text-muted-foreground" />
-                       <span className="text-sm font-bold">Annual Interest Rate</span>
-                     </div>
-                     <span className="text-xs font-black text-primary bg-primary/10 px-2 py-1 rounded-md">{settings.interest_rate}%</span>
+             <div className="grid md:grid-cols-2 gap-10">
+                <div className="space-y-6">
+                   <div className="flex items-center justify-between p-4 bg-secondary/20 rounded-2xl border border-border/50">
+                      <div>
+                         <div className="font-bold text-sm">Hard Credit Block</div>
+                         <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-0.5">Prevent overlimit invoices</div>
+                      </div>
+                      <button 
+                        onClick={() => setSettings({...settings, enforce_credit_limit: !settings.enforce_credit_limit})}
+                        className={`w-12 h-6 rounded-full p-1 transition-colors ${settings.enforce_credit_limit ? 'bg-ruby-500' : 'bg-muted'}`}
+                      >
+                        <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.enforce_credit_limit ? 'translate-x-6' : 'translate-x-0'}`} />
+                      </button>
                    </div>
-                   <input 
-                     type="range" min="0" max="36" step="1"
-                     className="w-full accent-primary"
-                     value={settings.interest_rate}
-                     onChange={(e) => setSettings({...settings, interest_rate: parseInt(e.target.value)})}
-                   />
-                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                     Applied to all overdue invoices after grace period. Standard textile rate is usually 18-24%.
-                   </p>
+
+                   <div className="space-y-3 px-1">
+                      <div className="flex justify-between text-xs font-bold">
+                         <span>Credit Grace Threshold</span>
+                         <span className="text-primary">{settings.credit_grace_percent}%</span>
+                      </div>
+                      <input 
+                        type="range" min="0" max="25" step="1"
+                        className="w-full accent-primary"
+                        value={settings.credit_grace_percent}
+                        onChange={(e) => setSettings({...settings, credit_grace_percent: parseInt(e.target.value)})}
+                      />
+                      <p className="text-[9px] text-muted-foreground italic">Extra % allowed above limit before hard block triggers.</p>
+                   </div>
                 </div>
 
-                <div className="space-y-4">
-                   <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-2">
-                       <Clock className="w-4 h-4 text-muted-foreground" />
-                       <span className="text-sm font-bold">Grace Period (Days)</span>
-                     </div>
-                     <span className="text-xs font-black text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-md">{settings.grace_period} Days</span>
+                <div className="space-y-6">
+                   <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Auto-Freeze Threshold</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <input 
+                          type="number"
+                          className="bg-secondary/50 border border-border rounded-xl px-4 py-3 font-bold w-24 outline-none focus:ring-2 ring-primary/20"
+                          value={settings.auto_freeze_days}
+                          onChange={(e) => setSettings({...settings, auto_freeze_days: parseInt(e.target.value)})}
+                        />
+                        <span className="text-sm font-bold text-muted-foreground">Days Overdue</span>
+                      </div>
+                      <p className="text-[10px] text-ruby-500 font-bold leading-tight">
+                        Customers with invoices older than {settings.auto_freeze_days} days will be automatically suspended from new orders.
+                      </p>
                    </div>
-                   <input 
-                     type="range" min="0" max="60" step="1"
-                     className="w-full accent-indigo-500"
-                     value={settings.grace_period}
-                     onChange={(e) => setSettings({...settings, grace_period: parseInt(e.target.value)})}
-                   />
-                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                     Buffer days allowed after the official due date before interest calculation starts.
-                   </p>
+
+                   <div className="space-y-3 pt-4 border-t border-border/50">
+                      <div className="flex justify-between text-xs font-bold">
+                         <span>Penal Interest Rate</span>
+                         <span className="text-amber-500">{settings.default_interest_rate}% p.a.</span>
+                      </div>
+                      <input 
+                         type="range" min="0" max="36" step="1"
+                         className="w-full accent-amber-500"
+                         value={settings.default_interest_rate}
+                         onChange={(e) => setSettings({...settings, default_interest_rate: parseInt(e.target.value)})}
+                      />
+                   </div>
                 </div>
              </div>
            </section>
@@ -223,18 +248,12 @@ export default function SettingsClient() {
                  </div>
                  
                  <div className="space-y-3 pt-4 border-t border-border/50">
-                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Global Credit Barrier</label>
-                    <div className="flex items-center gap-2 bg-secondary/50 p-3 rounded-xl border border-border">
-                       <span className="text-muted-foreground font-bold text-xs">₹</span>
-                       <input 
-                         type="number"
-                         className="bg-transparent border-none outline-none font-bold text-sm w-full"
-                         value={settings.block_overdue_threshold}
-                         onChange={(e) => setSettings({...settings, block_overdue_threshold: parseInt(e.target.value)})}
-                       />
+                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Rule engine Status</label>
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30">
+                       <ShieldAlert className={`w-4 h-4 ${settings.enforce_credit_limit ? 'text-ruby-500' : 'text-muted-foreground'}`} />
+                       <span className="text-[10px] font-extrabold uppercase">{settings.enforce_credit_limit ? 'Active Enforcement' : 'Warning Only Mode'}</span>
                     </div>
-                    <p className="text-[10px] text-ruby-500 font-bold">Hard-lock entities exceeding this overdue.</p>
-                 </div>
+                  </div>
               </div>
            </div>
 

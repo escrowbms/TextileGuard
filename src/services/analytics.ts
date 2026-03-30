@@ -129,3 +129,35 @@ export const getInterestRecoveryPotential = async (companyId: string) => {
     return null;
   }).filter(item => item !== null) || [];
 };
+
+/**
+ * Returns the current concentration of capital across aging buckets.
+ */
+export const getAgingConcentration = async (companyId: string) => {
+  const { data: invoices } = await supabase
+    .from('invoices')
+    .select('balance_due, aging_bucket')
+    .eq('company_id', companyId)
+    .gt('balance_due', 0);
+
+  const buckets = {
+    '0-30': 0,
+    '31-60': 0,
+    '61-90': 0,
+    '91-180': 0,
+    '180+': 0
+  };
+
+  invoices?.forEach(inv => {
+    const bucket = inv.aging_bucket as keyof typeof buckets;
+    if (buckets.hasOwnProperty(bucket)) {
+      buckets[bucket] += Number(inv.balance_due);
+    }
+  });
+
+  return Object.entries(buckets).map(([name, value]) => ({
+    name,
+    amount: value,
+    percentage: 0 // Will be calculated in UI or here
+  }));
+};

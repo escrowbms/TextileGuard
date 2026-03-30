@@ -8,7 +8,7 @@ import {
   getAgingData, 
   getCriticalBuyers 
 } from "@/services/dashboard";
-import { getFinancialAnalytics } from "@/services/analytics";
+import { getFinancialAnalytics, getAgingConcentration } from "@/services/analytics";
 import { getPendingReminders } from "@/services/reminders";
 import { getUserByFirebaseUid } from "@/services/user";
 import { useAuth } from "@/lib/auth-context";
@@ -25,6 +25,7 @@ export default function DashboardPage() {
     critical: any[];
     analytics: any;
     remindersCount: number;
+    concentration: any[];
   } | null>(null);
 
   useEffect(() => {
@@ -38,15 +39,23 @@ export default function DashboardPage() {
           return;
         }
 
-        const [stats, aging, critical, analytics, reminders] = await Promise.all([
+        const [stats, aging, critical, analytics, reminders, concentration] = await Promise.all([
           getDashboardStats(appUser.companyId),
           getAgingData(appUser.companyId),
           getCriticalBuyers(appUser.companyId),
           getFinancialAnalytics(appUser.companyId),
-          getPendingReminders(appUser.companyId)
+          getPendingReminders(appUser.companyId),
+          getAgingConcentration(appUser.companyId)
         ]);
  
-        setData({ stats, aging, critical, analytics, remindersCount: reminders.length });
+        setData({ 
+          stats, 
+          aging, 
+          critical, 
+          analytics, 
+          remindersCount: reminders.length,
+          concentration
+        });
       } catch (err) {
         console.error("Dashboard data fetch error:", err);
       } finally {
@@ -65,14 +74,22 @@ export default function DashboardPage() {
       // Refresh local data after sync
       const appUser = await getUserByFirebaseUid(user!.uid);
       if (appUser?.companyId) {
-        const [stats, aging, critical, analytics, reminders] = await Promise.all([
+        const [stats, aging, critical, analytics, reminders, concentration] = await Promise.all([
           getDashboardStats(appUser.companyId),
           getAgingData(appUser.companyId),
           getCriticalBuyers(appUser.companyId),
           getFinancialAnalytics(appUser.companyId),
-          getPendingReminders(appUser.companyId)
+          getPendingReminders(appUser.companyId),
+          getAgingConcentration(appUser.companyId)
         ]);
-        setData({ stats, aging, critical, analytics, remindersCount: reminders.length });
+        setData({ 
+          stats, 
+          aging, 
+          critical, 
+          analytics, 
+          remindersCount: reminders.length,
+          concentration 
+        });
       }
     } catch (err) {
       console.error("Automation sync error:", err);
@@ -151,6 +168,7 @@ export default function DashboardPage() {
       agingData={agingChartData} 
       criticalBuyers={data.critical as any} 
       remindersCount={data.remindersCount}
+      concentrationData={data.concentration}
       onTriggerSync={handleTriggerSync}
     />
   );

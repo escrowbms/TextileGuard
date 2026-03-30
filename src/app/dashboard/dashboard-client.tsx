@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownRight, LucideIcon, RefreshCw, Zap } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, LucideIcon, RefreshCw, Zap, TrendingUp } from "lucide-react";
 import { useState } from "react";
+import { BlockedCapitalChart } from "@/components/dashboard/BlockedCapitalChart";
 
 interface Stat {
   title: string;
@@ -37,13 +38,14 @@ const riskColors: Record<string, string> = {
 };
 
 export function DashboardClient({ 
-  stats, agingData, criticalBuyers, lastSync, remindersCount, onTriggerSync 
+  stats, agingData, criticalBuyers, lastSync, remindersCount, concentrationData, onTriggerSync 
 }: { 
   stats: Stat[], 
   agingData: AgingBar[], 
   criticalBuyers: Buyer[],
   lastSync?: string,
   remindersCount?: number,
+  concentrationData?: any[],
   onTriggerSync?: () => Promise<void>
 }) {
   const [isSyncing, setIsSyncing] = useState(false);
@@ -127,7 +129,7 @@ export function DashboardClient({
             </div>
           </div>
 
-          <div className="flex items-end gap-3 h-44 px-2">
+          <div className="flex items-end gap-3 h-44 px-2 mb-10">
             {agingData.map((bar, i) => (
               <div key={bar.label} className="flex-1 flex flex-col items-center gap-2 group">
                 <span className="text-[10px] font-bold text-foreground opacity-0 group-hover:opacity-100 transition-opacity bg-secondary px-2 py-0.5 rounded-md">
@@ -141,6 +143,21 @@ export function DashboardClient({
                 <span className="text-[9px] font-bold text-muted-foreground text-center leading-tight">{bar.label}</span>
               </div>
             ))}
+          </div>
+
+          {/* Blocked Capital Trend */}
+          <div className="pt-8 border-t border-border/50">
+            <div className="flex items-center gap-2 mb-6">
+               <TrendingUp className="w-4 h-4 text-ruby-500" />
+               <h4 className="text-sm font-black uppercase tracking-widest italic">Capital Risk concentration</h4>
+            </div>
+            {concentrationData && concentrationData.length > 0 ? (
+              <BlockedCapitalChart data={concentrationData} />
+            ) : (
+              <div className="h-[200px] flex items-center justify-center text-muted-foreground italic text-xs">
+                Analyzing risk patterns...
+              </div>
+            )}
           </div>
         </div>
 

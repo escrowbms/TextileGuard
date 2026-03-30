@@ -40,11 +40,29 @@ Deno.serve(async (req) => {
         const today = new Date();
         const diffDays = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 3600 * 24));
 
-        // Define trigger days (e.g., 7, 15, 30 days overdue)
-        const triggerDays = [7, 15, 30, 45, 60];
+        // 3. AUTO-FREEZE LOGIC
+        const autoFreezeThreshold = (company.settings as any)?.auto_freeze_days || 90;
+        if (diffDays >= autoFreezeThreshold) {
+          // Check current customer status first to avoid redundant updates
+          const { data: customer } = await supabase
+            .from('customers')
+            .select('status')
+            .eq('id', invoice.customer_id)
+            .single();
+
+          if (customer && customer.status !== 'frozen') {
+            console.log(`FREEZING CUSTOMER: ${invoice.customer_id} due to ${diffDays} days delay on ${invoice.invoice_number}`);
+            await supabase
+              .from('customers')
+              .update({ status: 'frozen' })
+              .eq('id', invoice.customer_id);
+          }
+        }
+
+        // 4. ESCALATION LOGIC (Define trigger days: 7, 15, 30, 45, 60+)
+        const triggerDays = [7, 15, 30, 45, 60, 90];
 
         if (triggerDays.includes(diffDays)) {
-          // 3. Check if reminder already exists for this trigger day
           const { data: existing } = await supabase
             .from('reminders')
             .select('id')
@@ -54,13 +72,18 @@ Deno.serve(async (req) => {
             .maybeSingle();
 
           if (!existing) {
-            // 4. Create new reminder
+            // Tiered escalation level
+            let level = 1;
+            if (diffDays >= 60) level = 3; // Final Notice
+            else if (diffDays >= 30) level = 2; // Formal Reminder
+
             await supabase.from('reminders').insert({
               company_id: company.id,
               invoice_id: invoice.id,
               trigger_day: diffDays,
               channel: 'whatsapp',
-              status: 'pending'
+              status: 'pending',
+              escalation_level: level
             });
             processedCount++;
           }

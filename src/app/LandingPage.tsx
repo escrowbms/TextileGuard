@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, ArrowRight, BarChart3, Lock, Mail,
   CheckCircle2, Globe, Zap, Cpu, Activity,
-  ChevronRight, Building2, Users
+  ChevronRight, Building2, Users, Menu, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatedBackground, STATIC_DETAILS } from '@/components/IndustrialShield';
@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -24,8 +25,8 @@ const LandingPage: React.FC = () => {
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-primary selection:text-white overflow-x-hidden">
       {/* ── Navbar ────────────────────────────────────────────────────────────── */}
       <nav className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b",
-        scrolled
+        "fixed top-0 left-0 right-0 z-[60] transition-all duration-500 border-b",
+        scrolled || mobileMenuOpen
           ? "py-4 bg-slate-950/80 backdrop-blur-xl border-white/10"
           : "py-6 bg-transparent border-transparent"
       )}>
@@ -35,11 +36,12 @@ const LandingPage: React.FC = () => {
               <Shield className="text-white w-5 h-5" />
             </div>
             <div>
-              <span className="font-black text-xl tracking-tighter block leading-none">TextileGuard</span>
+              <span className="font-black text-xl tracking-tighter block leading-none text-white">TextileGuard</span>
               <span className="text-[8px] uppercase tracking-[0.3em] text-primary/60 font-black">Industrial Shield</span>
             </div>
           </div>
 
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm font-bold text-slate-400 hover:text-white transition-colors">Features</a>
             <a href="#pricing" className="text-sm font-bold text-slate-400 hover:text-white transition-colors">Enterprise</a>
@@ -58,7 +60,52 @@ const LandingPage: React.FC = () => {
               Get Started
             </button>
           </div>
+
+          {/* Mobile Menu Toggle */}
+          <div className="flex md:hidden items-center gap-4">
+            <ThemeToggle />
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-slate-400 hover:text-white transition-colors"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Dropdown */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-slate-950 border-t border-white/10 overflow-hidden"
+            >
+              <div className="p-6 space-y-6">
+                <div className="flex flex-col gap-4">
+                  <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white">Features</a>
+                  <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white">Enterprise</a>
+                </div>
+                <div className="h-px bg-white/10" />
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
+                    className="w-full py-4 bg-white/5 border border-white/10 rounded-xl text-white font-bold"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => { navigate('/login?mode=signup'); setMobileMenuOpen(false); }}
+                    className="w-full py-4 bg-primary text-white rounded-xl font-black uppercase tracking-widest"
+                  >
+                    Get Started
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ── Hero Section ──────────────────────────────────────────────────────── */}
@@ -80,25 +127,25 @@ const LandingPage: React.FC = () => {
                 v2.0 Deploying Real-time Risk Engine
               </div>
 
-              <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.85] mb-8 text-balance">
+              <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] md:leading-[0.85] mb-8 text-balance">
                 Absolute Control <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-emerald-400">
                   Over Your Liquidity.
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-slate-400 font-bold leading-relaxed max-w-2xl mb-12">
+              <p className="text-lg md:text-2xl text-slate-400 font-bold leading-relaxed max-w-2xl mb-12">
                 {STATIC_DETAILS.description}
               </p>
 
-              <div className="flex flex-wrap gap-6">
+              <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
                 <button
                   onClick={() => navigate('/login')}
-                  className="group px-8 py-5 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center gap-3 hover:bg-primary/90 shadow-2xl shadow-primary/30 transition-all hover:translate-y-[-4px] active:scale-95"
+                  className="group w-full sm:w-auto justify-center px-8 py-5 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center gap-3 hover:bg-primary/90 shadow-2xl shadow-primary/30 transition-all hover:translate-y-[-4px] active:scale-95"
                 >
                   Launch Dashboard <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="px-8 py-5 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl font-black text-sm uppercase tracking-widest text-slate-300 hover:text-white hover:bg-white/5 transition-all hover:translate-y-[-4px] active:scale-95">
+                <button className="w-full sm:w-auto px-8 py-5 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl font-black text-sm uppercase tracking-widest text-slate-300 hover:text-white hover:bg-white/5 transition-all hover:translate-y-[-4px] active:scale-95">
                   View Case Studies
                 </button>
               </div>
@@ -161,9 +208,9 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* ── Stats Section ─────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-slate-950 relative z-10">
+      <section className="py-16 md:py-24 bg-slate-950 relative z-10">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 sm:gap-8">
             {[
               { val: "₹1,240Cr+", label: "Capital Protected" },
               { val: "14.2 Days", label: "Avg. DSO Improvement" },
@@ -176,10 +223,10 @@ const LandingPage: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="text-center"
+                className="text-center sm:text-left md:text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl md:bg-transparent md:border-0 md:p-0"
               >
                 <h3 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tighter">{stat.val}</h3>
-                <p className="text-xs font-black uppercase tracking-widest text-primary/60">{stat.label}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -278,15 +325,15 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* ── CTA Section ───────────────────────────────────────────────────────── */}
-      <section className="py-40 relative z-10">
+      <section className="py-20 md:py-40 relative z-10">
         <div className="container mx-auto px-6">
-          <div className="relative p-12 md:p-24 bg-gradient-to-br from-primary to-blue-600 rounded-[4rem] text-center overflow-hidden shadow-2xl shadow-primary/30 group">
+          <div className="relative p-8 sm:p-12 md:p-24 bg-gradient-to-br from-primary to-blue-600 rounded-[3rem] md:rounded-[4rem] text-center overflow-hidden shadow-2xl shadow-primary/30 group">
             {/* Background elements */}
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.2),transparent_50%)]" />
             <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-[100px] group-hover:scale-110 transition-transform duration-1000" />
             
             <div className="relative z-10 max-w-3xl mx-auto">
-              <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-8 leading-[0.9]">
+              <h2 className="text-4xl md:text-7xl font-black text-white tracking-tighter mb-8 leading-[1] md:leading-[0.9]">
                 Stop chasing payments. <br />
                 Start building empires.
               </h2>

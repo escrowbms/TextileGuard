@@ -84,7 +84,7 @@ export const getCustomerById = async (id: string) => {
 export const checkCreditStatus = async (customerId: string): Promise<CreditStatus> => {
   const { data: customer, error } = await supabase
     .from('customers')
-    .select('risk_score, credit_limit, overdue_amount, status')
+    .select('risk_score, credit_limit, overdue_amount, status, company_id')
     .eq('id', customerId)
     .single();
 
@@ -92,16 +92,31 @@ export const checkCreditStatus = async (customerId: string): Promise<CreditStatu
     return { isFrozen: false, reason: 'Customer not found', level: 'low' };
   }
 
-  const isOverLimit = customer.overdue_amount > (customer.credit_limit * 1.1); // 10% grace
+  // Fetch company settings for enforcement
+  const { data: company } = await supabase
+    .from('companies')
+    .select('settings')
+    .eq('id', customer.company_id)
+    .single();
+
+  const settings = company?.settings || {
+    enforce_credit_limit: false, 
+    credit_grace_percent: 5
+  };
+
+  const graceMultiplier = 1 + (settings.credit_grace_percent / 100);
+  const isOverLimit = customer.overdue_amount > (customer.credit_limit * graceMultiplier);
   const isHighRisk = customer.risk_score > 85;
   const isManuallyFrozen = customer.status === 'frozen';
 
-  const isFrozen = isOverLimit || isHighRisk || isManuallyFrozen;
+  // Only freeze automatically if enforcement is enabled OR if manually frozen/high risk
+  const isFrozen = (settings.enforce_credit_limit && isOverLimit) || isHighRisk || isManuallyFrozen;
   let reason = null;
 
   if (isManuallyFrozen) reason = "Account manually frozen due to non-payment";
-  else if (isOverLimit) reason = `Credit limit exceeded (Overdue: ₹${customer.overdue_amount})`;
-  else if (isHighRisk) reason = "Escalated to critical risk level";
+  else if (settings.enforce_credit_limit && isOverLimit) {
+    reason = `Credit limit exceeded (Overdue: ₹${customer.overdue_amount.toLocaleString('en-IN')})`;
+  } else if (isHighRisk) reason = "Escalated to critical risk level";
 
   let level: CreditStatus['level'] = 'low';
   if (customer.risk_score >= 85) level = 'critical';
