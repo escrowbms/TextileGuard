@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createInvoice } from "@/services/invoices";
 import { checkCreditStatus, CreditStatus } from "@/services/customers";
 import { useEffect } from "react";
+import { format } from "date-fns";
 
 interface Invoice {
   id: string;
@@ -284,7 +285,30 @@ export function InvoicesClient({
               className="w-full pl-11 pr-4 py-3 glass rounded-2xl border border-border bg-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-3 glass rounded-2xl border border-border text-sm text-muted-foreground hover:text-foreground transition-all">
+          <button
+            onClick={() => {
+              if (initialInvoices.length === 0) { toast.info("No invoices to export"); return; }
+              const rows = [
+                ["Invoice #", "Customer", "Due Date", "Total Amount", "Balance Due", "Status", "Aging Bucket"],
+                ...initialInvoices.map(i => [
+                  i.invoice_number,
+                  i.customer_name,
+                  format(new Date(i.due_date), "dd/MM/yyyy"),
+                  i.balance_due,
+                  i.balance_due,
+                  i.status,
+                  i.aging_bucket || "N/A",
+                ])
+              ];
+              const csv = rows.map(r => r.join(",")).join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = `invoices-${new Date().toISOString().split('T')[0]}.csv`;
+              a.click(); URL.revokeObjectURL(url);
+              toast.success("Invoices exported");
+            }}
+            className="flex items-center gap-2 px-4 py-3 glass rounded-2xl border border-border text-sm text-muted-foreground hover:text-foreground transition-all">
             <Download className="w-4 h-4" /> Export
           </button>
           <button

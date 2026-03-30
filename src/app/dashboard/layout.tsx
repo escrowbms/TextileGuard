@@ -41,6 +41,18 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
     { name: "Settings", icon: Settings, href: "/dashboard/settings" },
   ];
 
+  const getPageTitle = (path: string): string => {
+    if (path === '/dashboard') return 'Dashboard';
+    if (/^\/dashboard\/customers\/[0-9a-f-]{36}$/.test(path)) return 'Customer Detail';
+    const segment = path.split('/').pop() || '';
+    const map: Record<string, string> = {
+      customers: 'Customers', invoices: 'Invoices', reminders: 'Reminders',
+      interest: 'Interest Recovery', escalations: 'Escalations',
+      settings: 'Settings', import: 'Import Data',
+    };
+    return map[segment] ?? (segment.charAt(0).toUpperCase() + segment.slice(1));
+  };
+
   const SidebarContent = () => (
     <>
       <div className="flex items-center gap-3 mb-12 px-2">
@@ -110,8 +122,8 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
           <main className="flex-1 p-4 lg:p-10 max-w-7xl mx-auto w-full pt-20 lg:pt-10 pb-32 lg:pb-10">
             <header className="flex justify-between items-center mb-6 lg:mb-12">
               <div>
-                <h1 className="text-xl lg:text-3xl font-extrabold tracking-tight capitalize">
-                  {pathname === "/dashboard" ? "Dashboard" : pathname.split("/").pop()}
+                <h1 className="text-xl lg:text-3xl font-extrabold tracking-tight">
+                  {getPageTitle(pathname)}
                 </h1>
                 <p className="text-muted-foreground text-[10px] lg:text-base font-medium mt-1">
                   Enforcement active for <span className="text-foreground">{companyName}</span>
