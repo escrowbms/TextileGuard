@@ -99,7 +99,7 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error("Automation sync error:", err);
-      alert("Failed to trigger cloud automation. Please try again.");
+      toast.error("Failed to trigger cloud automation. Please try again.");
     }
   }, [user]);
 

@@ -4,22 +4,42 @@ import AuthGuard from "@/components/AuthGuard";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BottomNav } from "@/components/BottomNav";
-import { LayoutDashboard, Users, FileText, Settings, LogOut, Bell, ShieldCheck, Search, Plus, MessageSquare, TrendingUp } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { LayoutDashboard, Users, FileText, Settings, LogOut, Bell, ShieldCheck, MessageSquare, TrendingUp } from "lucide-react";
+import { motion } from "framer-motion";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { getUserByFirebaseUid } from "@/services/user";
 import { supabase } from "@/lib/supabase";
+import { getAuth, signOut } from "firebase/auth";
 
 export default function DashboardLayout({ children }: { children?: React.ReactNode }) {
   const location = useLocation();
   const pathname = location.pathname;
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [companyName, setCompanyName] = useState('Your Company');
+  const [userInitials, setUserInitials] = useState('ME');
+
+  const handleLogout = async () => {
+    try {
+      await signOut(getAuth());
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
+    // Derive initials from displayName or email
+    const name = user.displayName || user.email || '';
+    const parts = name.split(/[\s@.]+/).filter(Boolean);
+    const initials = parts.length >= 2
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : name.slice(0, 2).toUpperCase();
+    setUserInitials(initials);
+
     getUserByFirebaseUid(user.uid).then(async (appUser) => {
       if (!appUser?.companyId) return;
       const { data } = await supabase
@@ -84,7 +104,7 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
             <span className="text-sm text-muted-foreground font-medium">Theme</span>
             <ThemeToggle />
         </div>
-        <button className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-destructive transition-colors w-full rounded-2xl hover:bg-destructive/5">
+        <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-destructive transition-colors w-full rounded-2xl hover:bg-destructive/5">
           <LogOut className="w-5 h-5" />
           <span className="font-medium">Logout</span>
         </button>
@@ -113,7 +133,7 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center font-bold text-[10px] text-primary border border-primary/20">
-                JD
+                {userInitials}
               </div>
             </div>
           </div>
@@ -136,8 +156,8 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
                   <Bell className="w-5 h-5 text-muted-foreground" />
                   <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-ruby-500 rounded-full border-2 border-background" />
                 </button>
-                <div className="w-11 h-11 bg-primary border border-primary/20 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg shadow-primary/20 cursor-pointer hover:scale-105 transition-transform">
-                  JD
+                <div onClick={handleLogout} title="Logout" className="w-11 h-11 bg-primary border border-primary/20 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg shadow-primary/20 cursor-pointer hover:scale-105 transition-transform" >
+                  {userInitials}
                 </div>
               </div>
             </header>

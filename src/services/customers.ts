@@ -66,7 +66,8 @@ export const createCustomer = async (data: {
       credit_limit: data.creditLimit,
       company_id: data.companyId,
       status: 'active',
-      risk_score: 50, // Default risk score
+      risk_score: 0,      // No history = no risk yet
+      risk_level: 'low',  // Will be recalculated once invoices are added
     });
 
   return { error: error?.message };

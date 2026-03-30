@@ -142,7 +142,7 @@ export default function RemindersPage() {
                           <p className="text-[10px] font-bold text-muted-foreground uppercase">Due Amount</p>
                           <div className="flex items-center gap-1 mt-0.5">
                             <IndianRupee className="w-3.5 h-3.5 text-foreground" />
-                            <span className="font-black text-lg">{(reminder.amount / 100000).toFixed(2)}H</span>
+                            <span className="font-black text-lg">{(reminder.amount / 100000).toFixed(2)}L</span>
                           </div>
                         </div>
                         <div>

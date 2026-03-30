@@ -144,15 +144,20 @@ export default function CustomerDetailPage() {
   const totalOverdue = overdueInvoices.reduce((sum: number, i: any) => sum + (i.balance_due || 0), 0);
   const isFrozen = customer.is_credit_frozen || customer.status === "frozen";
 
+  const rawScore = customer.risk_score || 0;
+  const hasHistory = invoices.length > 0;
+
   const getRiskLevel = (score: number) => {
+    if (!hasHistory || score === 0) return "unrated";
     if (score < 30) return "low";
     if (score < 60) return "medium";
     if (score < 85) return "high";
     return "critical";
   };
-  const riskLevel = getRiskLevel(customer.risk_score || 0);
+  const riskLevel = getRiskLevel(rawScore);
 
   const riskColors: Record<string, string> = {
+    unrated: "bg-secondary border-border text-muted-foreground",
     low: "bg-emerald-500/10 border-emerald-500/20 text-emerald-500",
     medium: "bg-indigo-500/10 border-indigo-500/20 text-indigo-500",
     high: "bg-amber-500/10 border-amber-500/20 text-amber-500",
@@ -261,30 +266,42 @@ export default function CustomerDetailPage() {
             <ShieldCheck className="w-20 h-20" />
           </div>
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Risk Intelligence</p>
-          <div className="flex items-center gap-4">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border ${riskColors[riskLevel]}`}>
-              {riskLevel === "low" ? <UserCheck className="w-8 h-8" /> :
-               riskLevel === "critical" ? <ShieldAlert className="w-8 h-8 animate-pulse" /> :
-               <ShieldCheck className="w-8 h-8" />}
+          {riskLevel === 'unrated' ? (
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center border bg-secondary border-border text-muted-foreground">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <div>
+                <p className="text-xl font-black uppercase tracking-tighter text-muted-foreground">Unrated</p>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">No invoice history yet</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xl font-black uppercase tracking-tighter">{riskLevel}</p>
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Risk Level</p>
+          ) : (
+            <div className="flex items-center gap-4">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border ${riskColors[riskLevel]}`}>
+                {riskLevel === "low" ? <UserCheck className="w-8 h-8" /> :
+                 riskLevel === "critical" ? <ShieldAlert className="w-8 h-8 animate-pulse" /> :
+                 <ShieldCheck className="w-8 h-8" />}
+              </div>
+              <div>
+                <p className="text-xl font-black uppercase tracking-tighter">{riskLevel}</p>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Calculated Risk Level</p>
+              </div>
             </div>
-          </div>
+          )}
           <div className="mt-4 space-y-1">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground font-bold">Risk Score</span>
-              <span className="font-black">{customer.risk_score || 0}/100</span>
+              <span className="font-black">{riskLevel === 'unrated' ? 'N/A' : `${rawScore}/100`}</span>
             </div>
             <div className="h-2 w-full bg-border rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-1000 ${
-                  (customer.risk_score || 0) >= 85 ? "bg-ruby-500" :
-                  (customer.risk_score || 0) >= 60 ? "bg-amber-500" :
-                  (customer.risk_score || 0) >= 30 ? "bg-indigo-500" : "bg-emerald-500"
+                  rawScore >= 85 ? "bg-ruby-500" :
+                  rawScore >= 60 ? "bg-amber-500" :
+                  rawScore >= 30 ? "bg-indigo-500" : "bg-emerald-500"
                 }`}
-                style={{ width: `${customer.risk_score || 0}%` }}
+                style={{ width: riskLevel === 'unrated' ? '0%' : `${rawScore}%` }}
               />
             </div>
           </div>

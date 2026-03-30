@@ -21,88 +21,97 @@ export const STATIC_DETAILS = {
   ]
 };
 
-// ── Shared Components ─────────────────────────────────────────────────────────
+// ── AnimatedBackground ─────────────────────────────────────────────────────────
+// NOTE: Must be placed inside a `relative overflow-hidden` parent.
+// All elements use overflow-hidden + inset-0 to prevent bleed outside parent.
 
 export const AnimatedBackground = ({ type }: { type: string }) => {
   return (
-    <div className="absolute inset-0 overflow-hidden bg-background" style={{ perspective: "1200px" }}>
-      {/* Dynamic Radial Glow */}
-      <motion.div 
-        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3], rotate: [0, 90, 0] }}
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ perspective: "1200px" }}>
+
+      {/* Radial colour glow — theme-safe, very subtle */}
+      <motion.div
+        animate={{ scale: [1, 1.2, 1], opacity: [0.25, 0.45, 0.25] }}
         transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
         className={cn(
-          "absolute inset-0 transition-colors duration-1000",
-          type === 'intelligence' ? "bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.15),transparent_60%)]" :
-          type === 'automation' ? "bg-[radial-gradient(circle_at_70%_30%,rgba(139,92,246,0.15),transparent_60%)]" :
-          "bg-[radial-gradient(circle_at_50%_70%,rgba(16,185,129,0.15),transparent_60%)]"
+          "absolute inset-0",
+          type === 'intelligence' && "bg-[radial-gradient(ellipse_at_25%_30%,rgba(59,130,246,0.12),transparent_65%)]",
+          type === 'automation'   && "bg-[radial-gradient(ellipse_at_70%_30%,rgba(139,92,246,0.12),transparent_65%)]",
+          type === 'discipline'   && "bg-[radial-gradient(ellipse_at_50%_70%,rgba(16,185,129,0.12),transparent_65%)]",
         )}
       />
 
+      {/* ── Intelligence type ── */}
       {type === 'intelligence' && (
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(59,130,246,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.1)_1px,transparent_1px)] [background-size:60px_60px] translate-z-[-100px]" />
+        <>
+          {/* Subtle dot grid */}
+          <div className="absolute inset-0 opacity-[0.12]
+            [background-image:radial-gradient(circle,rgba(59,130,246,0.5)_1px,transparent_1px)]
+            [background-size:40px_40px]" />
+
+          {/* Orbiting ring — clipped by parent overflow-hidden */}
           <motion.div
-            animate={{ rotate: 360, rotateX: [60, 45, 60], z: [-50, 50, -50] }}
-            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-            className="absolute -right-20 top-1/2 -translate-y-1/2 w-[700px] h-[700px] border-[1.5px] border-blue-500/20 rounded-full"
-            style={{ transformStyle: "preserve-3d" }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+            className="absolute top-1/2 right-[-160px] -translate-y-1/2 w-[480px] h-[480px] border border-blue-500/15 rounded-full"
           />
-          {[...Array(8)].map((_, i) => (
+
+          {/* Floating cards that scroll upward out of view */}
+          {[...Array(5)].map((_, i) => (
             <motion.div
               key={i}
-              initial={{ y: 0, opacity: 0, rotateX: -25, z: -150 }}
-              animate={{ y: -600, opacity: [0, 0.8, 0], rotateX: [ -30, 0, 30 ], z: [ -200, 150, -200 ], scale: [0.8, 1.2, 0.8] }}
-              transition={{ duration: 6 + Math.random() * 4, repeat: Infinity, delay: i * 0.8 }}
-              className="absolute w-24 h-32 bg-gradient-to-br from-blue-400/10 to-blue-600/5 rounded-xl border border-blue-400/30 backdrop-blur-xl shadow-2xl"
-              style={{ left: `${10 + i * 12}%`, top: '100%', transformStyle: "preserve-3d" }}
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: -600, opacity: [0, 0.4, 0] }}
+              transition={{ duration: 8 + i, repeat: Infinity, delay: i * 1.8, ease: "linear" }}
+              className="absolute w-14 h-20 bg-blue-400/5 border border-blue-400/15 rounded-xl"
+              style={{ left: `${10 + i * 17}%`, top: '100%' }}
             />
           ))}
-        </div>
+        </>
       )}
 
+      {/* ── Automation type ── */}
       {type === 'automation' && (
-        <div className="absolute inset-0">
+        <>
           <motion.div
-            animate={{ rotate: 360, rotateX: [60, 45, 60], z: [-100, 50, -100] }}
+            animate={{ rotate: 360 }}
             transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            className="absolute -right-20 -top-20 w-[600px] h-[600px] border-2 border-purple-500/20 rounded-full"
-            style={{ transformStyle: "preserve-3d" }}
+            className="absolute top-[-150px] right-[-150px] w-[520px] h-[520px] border border-purple-500/15 rounded-full"
           />
-          {[...Array(12)].map((_, i) => (
+          {[...Array(9)].map((_, i) => (
             <motion.div
               key={i}
-              animate={{ x: [0, 150, 0], opacity: [0.2, 0.6, 0.2], scaleX: [1, 1.5, 1] }}
-              transition={{ duration: 3 + Math.random() * 3, repeat: Infinity, delay: i * 0.4 }}
-              className="absolute h-[1.5px] bg-gradient-to-r from-transparent via-purple-500/60 to-transparent"
-              style={{ left: '-10%', top: `${15 + i * 7}%`, width: '120%' }}
+              animate={{ x: [0, 60, 0], opacity: [0.1, 0.45, 0.1] }}
+              transition={{ duration: 3.5 + i * 0.3, repeat: Infinity, delay: i * 0.5, ease: "easeInOut" }}
+              className="absolute h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent"
+              style={{ left: 0, top: `${12 + i * 8.5}%`, width: '100%' }}
             />
           ))}
-        </div>
+        </>
       )}
 
+      {/* ── Discipline type ── */}
       {type === 'discipline' && (
-        <div className="absolute inset-0">
+        <>
           <motion.div
-            animate={{ rotateY: [0, 360], rotateX: [30, -30, 30], scale: [0.95, 1.05, 0.95] }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 border-[3px] border-emerald-500/30 rounded-full flex items-center justify-center shadow-[0_0_100px_rgba(16,185,129,0.2)]"
-            style={{ transformStyle: "preserve-3d" }}
+            animate={{ scale: [0.95, 1.05, 0.95] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 border-2 border-emerald-500/20 rounded-full shadow-[0_0_60px_rgba(16,185,129,0.1)]"
           />
-          {[...Array(20)].map((_, i) => (
+          {[...Array(10)].map((_, i) => (
             <motion.div
               key={i}
-              animate={{ scale: [0, 1.5, 0], opacity: [0, 0.8, 0], z: [-50, 50, -50] }}
-              transition={{ duration: 3 + Math.random() * 4, repeat: Infinity, delay: i * 0.2 }}
-              className="absolute w-2 h-2 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.8)]"
-              style={{ left: `${15 + Math.random() * 70}%`, top: `${15 + Math.random() * 70}%`, transformStyle: "preserve-3d" }}
+              animate={{ scale: [0, 1.1, 0], opacity: [0, 0.55, 0] }}
+              transition={{ duration: 2.5 + (i % 4) * 0.5, repeat: Infinity, delay: i * 0.3 }}
+              className="absolute w-1.5 h-1.5 bg-emerald-400 rounded-full"
+              style={{ left: `${20 + (i * 6) % 60}%`, top: `${20 + (i * 7) % 60}%` }}
             />
           ))}
-        </div>
+        </>
       )}
 
-      {/* Industrial Grain Overlay */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('data:image/svg+xml,%3Csvg%20viewBox=%220%200%20200%20200%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter%20id=%22noiseFilter%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.65%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] contrast-150 brightness-150" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
+      {/* Bottom vignette — fades into background regardless of theme */}
+      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/60 to-transparent" />
     </div>
   );
 };
