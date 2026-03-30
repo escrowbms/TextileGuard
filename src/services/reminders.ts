@@ -11,6 +11,7 @@ export interface Reminder {
   message: string;
   whatsapp_url: string;
   status: 'pending' | 'sent';
+  escalation_level: number;
 }
 
 /**
@@ -56,76 +57,64 @@ export const getPendingReminders = async (companyId: string): Promise<Reminder[]
     .single();
 
   const settings = company?.settings || {};
-  const reminderSchedule = [7, 30, 60]; // Default days if not in settings
-
-  // 2. Fetch Unpaid Invoices with Customer Data
-  const { data: invoices } = await supabase
-    .from('invoices')
+  
+  // 2. Fetch Pending Reminders joined with Invoice and Customer data
+  // We now rely on the 'reminders' table populated by the worker
+  const { data: reminders, error } = await supabase
+    .from('reminders')
     .select(`
-      id, 
-      invoice_number, 
-      total_amount, 
-      balance_due, 
-      due_date, 
+      id,
+      invoice_id,
+      trigger_day,
+      escalation_level,
+      metadata,
       status,
-      customers (id, name, phone)
+      invoices (
+        invoice_number,
+        balance_due,
+        total_amount,
+        due_date,
+        customers (id, name, phone)
+      )
     `)
     .eq('company_id', companyId)
-    .neq('status', 'paid');
+    .eq('status', 'pending')
+    .order('createdat', { ascending: false });
 
-  if (!invoices) return [];
+  if (error || !reminders) return [];
 
-  const today = new Date();
-  const pendingReminders: Reminder[] = [];
-
-  for (const inv of invoices) {
+  return reminders.map(rem => {
+    const inv = rem.invoices as any;
+    const customer = inv.customers as any;
     const dueDate = new Date(inv.due_date);
-    const diffTime = today.getTime() - dueDate.getTime();
-    const daysOverdue = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const today = new Date();
+    const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Check which reminder matches
-    // For now, we'll find the highest trigger_day that has passed and hasn't been sent
-    const activeTrigger = reminderSchedule.find(day => daysOverdue >= day);
+    // Use stored message or generate a fallback
+    const msg = rem.metadata?.message || generateReminderMessage(
+      customer.name,
+      inv.balance_due,
+      inv.invoice_number,
+      inv.due_date,
+      daysOverdue > 0
+    );
 
-    if (activeTrigger !== undefined) {
-      // Check if this reminder (trigger_day) was already sent
-      const { data: existing } = await supabase
-        .from('reminders')
-        .select('id')
-        .eq('invoice_id', inv.id)
-        .eq('trigger_day', activeTrigger)
-        .eq('status', 'sent')
-        .maybeSingle();
+    const phone = customer.phone ? formatPhone(customer.phone) : '910000000000';
 
-      if (!existing) {
-        const customer = inv.customers as any;
-        const msg = generateReminderMessage(
-          customer.name, 
-          inv.balance_due, 
-          inv.invoice_number, 
-          inv.due_date, 
-          daysOverdue > 0
-        );
-
-        const phone = customer.phone ? formatPhone(customer.phone) : '910000000000';
-        
-        pendingReminders.push({
-          id: `${inv.id}-${activeTrigger}`,
-          invoice_id: inv.id,
-          customer_name: customer.name,
-          amount: inv.balance_due,
-          due_date: inv.due_date,
-          days_overdue: daysOverdue,
-          trigger_day: activeTrigger,
-          message: msg,
-          whatsapp_url: `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
-          status: 'pending'
-        });
-      }
-    }
-  }
-
-  return pendingReminders;
+    return {
+      id: rem.id,
+      invoice_id: rem.invoice_id,
+      customer_name: customer.name,
+      amount: inv.balance_due,
+      due_date: inv.due_date,
+      days_overdue: daysOverdue,
+      trigger_day: rem.trigger_day,
+      message: msg,
+      whatsapp_url: `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,
+      status: rem.status as 'pending' | 'sent',
+      escalation_level: rem.escalation_level
+    };
+  });
 };
 
 /**

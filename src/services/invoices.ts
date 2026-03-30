@@ -74,7 +74,7 @@ export const createInvoice = async (data: {
     .insert({
       customer_id: data.customerId,
       invoice_number: data.invoiceNumber,
-      amount: data.totalAmount,
+      total_amount: data.totalAmount,
       balance_due: data.totalAmount,
       due_date: data.dueDate.toISOString(),
       company_id: data.companyId,

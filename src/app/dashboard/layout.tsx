@@ -4,20 +4,39 @@ import AuthGuard from "@/components/AuthGuard";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BottomNav } from "@/components/BottomNav";
-import { LayoutDashboard, Users, FileText, Settings, LogOut, Bell, ShieldCheck, Search, Plus, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Settings, LogOut, Bell, ShieldCheck, Search, Plus, MessageSquare, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation, Outlet } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { getUserByFirebaseUid } from "@/services/user";
+import { supabase } from "@/lib/supabase";
 
 export default function DashboardLayout({ children }: { children?: React.ReactNode }) {
   const location = useLocation();
   const pathname = location.pathname;
+  const { user } = useAuth();
+  const [companyName, setCompanyName] = useState('Your Company');
+
+  useEffect(() => {
+    if (!user) return;
+    getUserByFirebaseUid(user.uid).then(async (appUser) => {
+      if (!appUser?.companyId) return;
+      const { data } = await supabase
+        .from('companies')
+        .select('name')
+        .eq('id', appUser.companyId)
+        .single();
+      if (data?.name) setCompanyName(data.name);
+    });
+  }, [user]);
 
   const navItems = [
     { name: "Overview", icon: LayoutDashboard, href: "/dashboard" },
     { name: "Customers", icon: Users, href: "/dashboard/customers" },
     { name: "Invoices", icon: FileText, href: "/dashboard/invoices" },
     { name: "Reminders", icon: MessageSquare, href: "/dashboard/reminders" },
+    { name: "Interest", icon: TrendingUp, href: "/dashboard/interest" },
     { name: "Escalations", icon: Bell, href: "/dashboard/escalations" },
     { name: "Settings", icon: Settings, href: "/dashboard/settings" },
   ];
@@ -95,7 +114,7 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
                   {pathname === "/dashboard" ? "Dashboard" : pathname.split("/").pop()}
                 </h1>
                 <p className="text-muted-foreground text-[10px] lg:text-base font-medium mt-1">
-                  Enforcement active for <span className="text-foreground">Acme Textiles Ltd.</span>
+                  Enforcement active for <span className="text-foreground">{companyName}</span>
                 </p>
               </div>
  

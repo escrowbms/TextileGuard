@@ -1,107 +1,88 @@
-# TextileGuard (SaaS Platform) - Final Complete PRD
+# 🛡️ TextileGuard: Product Requirements Document (PRD)
 
 ## 1. 🧠 Product Definition
 
 **Product Name**: TextileGuard  
-**Category**: SaaS Platform / Credit Control System / Receivable Enforcement Infrastructure  
+**Category**: SaaS / Receivable Management / Credit Control Infrastructure  
+**Target Industry**: Textile, Manufacturing, MSME  
 **Core Philosophy**: “ERP stores data. TextileGuard enforces discipline.”  
-**Core Outcome**: Reduce overdue receivables, improve cash flow, and automate recovery.
+**Value Proposition**: To solve the problem of ruka hua paisa (overdue receivables) by moving from passive accounting to active enforcement through automation and interest recovery.
 
-## 2. ⚙️ Current Tech Stack (AS-IS)
+---
 
-- **Frontend**: React 18 (Vite SPA)
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **Icons**: Lucide Icons
-- **Routing**: React Router v6
-- **Backend/Infra**: Supabase (PostgreSQL), Firebase Auth (JWT)
-- **Hosting**: Firebase Hosting
-- **Architecture**: Serverless SPA + Direct Supabase client calls.
+## 2. ⚙️ Technology Stack
 
-## 3. 🏗️ Product State (Current)
+| Layer | Technology | Rationale |
+| :--- | :--- | :--- |
+| **Frontend** | React 18 (Vite SPA) | Fast, modular, and developer-friendly. |
+| **Styling** | Tailwind CSS | Utility-first for rapid UI development and industrial look. |
+| **Backend** | Supabase (PostgreSQL) | Real-time features, secure database, and built-in Auth. |
+| **Deno Workers** | Supabase Edge Functions | Serverless logic for background scanning (Overdue invoices). |
+| **Auth** | Firebase Authentication | Enterprise-grade login/JWT management. |
+| **Animations** | Framer Motion | Premium "WOW" factor for industrial dashboards. |
+| **Hosting** | Firebase Hosting | Scalable global CDN for the static assets. |
 
-| Status | Feature |
-| :--- | :--- |
-| ✅ | Landing Page (Industrial Design) |
-| ✅ | Authentication (Firebase Auth) |
-| ✅ | Dashboard System (O/S Balance, Risk Heatmap) |
-| ✅ | Invoice System (Creation, basic tracking) |
-| ✅ | Customer Ledger (Exposure, Risk Profile) |
-| ✅ | Customer Detail Page (Transaction history, graphs) |
-| 🟢 | Escalation Engine (Alerts UI, WhatsApp trigger interface) |
+---
 
-## 🧩 4. Full Feature Roadmap
+## 3. 🏗️ Product Modules (Existing + Planned)
 
-### Module 1: Data Extraction Engine
+### Module 1: Dashboard & Risk Analytics (✅)
+- **O/S Balance Tracker**: Real-time monitoring of total market outstanding.
+- **Risk Heatmap**: Geographical and amount-based risk visualization.
+- **Exposure Analytics**: Charts showing risk by age (0-30, 30-60, 60-90+ days).
 
-- **ERP Integration**: Tally/Busy ledger sync, sales register import.
-- **Status**: 🔴 Not Built
+### Module 2: Credit Control Engine (🟢)
+- **Credit Limits**: Set limits per customer; block further dispatch if exceeded.
+- **Enforcement Levels**: Green (Safe) → Yellow (Reminder) → Orange (Warning) → Red (Block).
 
-### Module 2: Credit Control System (Core)
+### Module 3: Interest Recovery System (✅)
+- **Automatic Penal Interest**: Calculation of lost interest on delayed payments (default @ 18%).
+- **Interest Ledger**: Detailed recovery statements for late-paying customers.
 
-- **Enforcement**: Credit limits, exposure tracking, credit freeze, dispatch blocking.
-- **Status**: 🟢 Core Built (requires logic centralization)
+### Module 4: Reminder Engine (🟡 Partial)
+- **WhatsApp Nudges**: Deep-linked reminders that open directly on the phone.
+- **Automated Emails**: Tiered email alerts triggered by background workers.
+- **Call Logs**: Tracking of follow-up calls made to customers.
 
-### Module 3: Aging & Dashboard
+### Module 5: ERP Integration (🔴 Planned)
+- **XML Importer**: Seamless sync with **Tally Prime** and **Busy**.
+- **Bulk Upload**: CSV/Excel support for legacy data transition.
 
-- **Analytics**: Aging buckets, heatmap, blocked capital, collection ratio.
-- **Status**: 🟡 Partial
+---
 
-### Module 4: Reminder Engine
+## 4. 🔥 Core Business Logic
 
-- **Automation**: Scheduled multi-channel reminders (Email, WhatsApp, SMS).
-- **Status**: 🟡 Partial (basic email)
+### Enforcement Flow
+1. **Invoice Created** → Sync with Supabase → Check Credit Limit.
+2. **Daily Scan** → **Cloud Worker** checks for overdue invoices.
+3. **Escalation** → If payment delayed, system moves from 'Yellow' to 'Orange'.
+4. **Reminders** → Zero-cost WhatsApp nudges sent to the buyer.
+5. **Freeze** → If 'Red', system suggests immediate credit freeze and interest recovery.
 
-### Module 5: Escalation Engine
+### Risk Formula (Internal)
+`Risk Score = (Age of Invoice × Amount) + (History of Delays) + (Current Exposure %)`
 
-- **Flow**: Yellow → Orange → Red → Credit Freeze → Legal.
-- **Status**: 🟢 Core Built
+---
 
-### Module 6 & 7: Enforcement & Control
+## 5. 🔒 Security & Data Isolation
 
-- **Strengthening**: Legal clauses, Interest clauses.
-- **Delivery**: POD upload, E-way bill logs.
-- **Status**: 🔴 Not Built
+- **Multi-Tenancy**: Strict isolation using `company_id`.
+- **Supabase RLS**: Row Level Security prevents any unauthorized data leakage.
+- **Firebase Auth**: JWT-based secure session management.
 
-### Module 8-10: Intelligence & Capital
+---
 
-- **Follow-up**: Call logs, response tracking.
-- **Risk Intelligence**: defaulter detection, payment behavior scoring.
-- **Capital Impact**: Interest loss, ROI calculation.
-- **Status**: 🔴 Not Built / 🟡 Basic Risk only.
+## 6. 🚀 Future Roadmap
 
-## 5. 🔥 Core Engine Logic
+- **Phase 1**: Polish UI and complete basic automation (current).
+- **Phase 2**: Full WhatsApp automation (no-code triggers).
+- **Phase 3**: Tally & Busy direct sync (Pulse Sync).
+- **Phase 4**: Legal notice generation and integration with legal recovery.
 
-### Enforcement Logic
+---
 
-1. **Invoice Created** → Check Credit Limit → Allow / Block.
-2. **Daily Scan** → Calculate Overdue → Assign Risk Level → Send Reminder → Escalate → Freeze Credit.
+> [!IMPORTANT]
+> **Technical Note**: Ensure that all frontend components use the centralized `services/` layer (`analytics.ts`, `invoices.ts`) instead of direct Supabase calls for better maintainability.
 
-### Risk Formula (Planned)
-
-`Risk Score = Delay Factor + Dispute + Exposure Growth`
-
-## 6. 🚀 Roadmap
-
-### Phase 1 (Launch Priority)
-
-- [ ] Polish existing system UI/UX.
-- [ ] Automate fundamental reminders.
-- [ ] Centralize basic enforcement logic in service layer.
-
-### Phase 2
-
-- [ ] Implement WhatsApp automation.
-- [ ] Advanced dashboard analytics.
-- [ ] Enhanced Risk Intelligence.
-
-### Phase 3
-
-- [ ] ERP Integration (Tally/Busy).
-- [ ] POD + Legal integration.
-
-## ⚠️ Critical Fixes Needed
-
-1. **Security**: Centralize logic in services and implement **Supabase RLS** for multi-tenancy.
-2. **Logic**: Shift enforcement logic from UI-driven to Service/Backend driven.
-3. **Data**: Setup proper isolation for multi-tenant SaaS architecture.
+> [!TIP]
+> Use the **Reminders Center** to view all pending high-priority actions across all modules.

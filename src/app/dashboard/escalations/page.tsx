@@ -12,6 +12,7 @@ export default function EscalationsPage() {
   const [loading, setLoading] = useState(true);
   const [escalations, setEscalations] = useState<any[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [companyId, setCompanyId] = useState<string>("");
 
   useEffect(() => {
     async function fetchData() {
@@ -20,6 +21,7 @@ export default function EscalationsPage() {
       try {
         const appUser = await getUserByFirebaseUid(user.uid);
         if (!appUser?.companyId) return;
+        setCompanyId(appUser.companyId);
 
         const [escalationsList, remindersList] = await Promise.all([
           getEscalations(appUser.companyId),
@@ -48,7 +50,7 @@ export default function EscalationsPage() {
     <EscalationsClient 
       initialEscalations={escalations as any} 
       initialReminders={reminders}
-      companyId={user?.uid || ""}
+      companyId={companyId}
     />
   );
 }

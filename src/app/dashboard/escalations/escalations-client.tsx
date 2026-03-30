@@ -169,32 +169,56 @@ export function EscalationsClient({
       ) : (
         <div className="space-y-3">
           {initialReminders.map((rem, i) => (
-            <motion.div key={rem.invoice_id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-              className="glass rounded-2xl border border-border p-5 hover:bg-secondary/20 transition-all">
+            <motion.div key={rem.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+              className="glass rounded-2xl border border-border p-5 hover:bg-secondary/20 transition-all overflow-hidden relative">
+              
+              {/* Level Indicator Bar */}
+              <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                rem.escalation_level === 3 ? 'bg-ruby-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' :
+                rem.escalation_level === 2 ? 'bg-amber-500' :
+                rem.escalation_level === 1 ? 'bg-blue-500' :
+                'bg-emerald-500'
+              }`} />
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    rem.days_overdue >= 60 ? 'bg-ruby-500/10 text-ruby-500' :
-                    rem.days_overdue >= 30 ? 'bg-amber-500/10 text-amber-500' :
+                    rem.escalation_level === 3 ? 'bg-ruby-500/10 text-ruby-500' :
+                    rem.escalation_level === 2 ? 'bg-amber-500/10 text-amber-500' :
+                    rem.escalation_level === 1 ? 'bg-blue-500/10 text-blue-500' :
                     'bg-emerald-500/10 text-emerald-500'
                   }`}>
                     <Bell className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-bold text-foreground">{rem.customer_name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-foreground">{rem.customer_name}</p>
+                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                        rem.escalation_level === 3 ? 'border-ruby-500/20 text-ruby-500 bg-ruby-500/5' :
+                        rem.escalation_level === 2 ? 'border-amber-500/20 text-amber-500 bg-amber-500/5' :
+                        rem.escalation_level === 1 ? 'border-blue-500/20 text-blue-500 bg-blue-500/5' :
+                        'border-emerald-500/20 text-emerald-500 bg-emerald-500/5'
+                      }`}>
+                        Level {rem.escalation_level}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                         INV #{rem.invoice_id.slice(0, 8)}
                       </span>
-                      <span className="text-xs text-ruby-500 font-bold">{rem.days_overdue} days overdue</span>
+                      <span className={`text-xs font-bold ${rem.days_overdue > 45 ? 'text-ruby-500' : 'text-amber-500'}`}>
+                        {rem.days_overdue} days overdue
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 sm:text-right">
+                  <div className="hidden lg:block max-w-[200px]">
+                    <p className="text-[10px] text-muted-foreground italic line-clamp-1 opacity-60">"{(rem as any).message}"</p>
+                  </div>
                   <div className="hidden sm:block">
                     <p className="font-bold text-sm">₹{rem.amount.toLocaleString()}</p>
-                    <p className="text-[10px] text-muted-foreground italic">Action: Send Nudge</p>
                   </div>
                   <div className="flex gap-2">
                     <button 
@@ -204,7 +228,6 @@ export function EscalationsClient({
                       title="Send WhatsApp Direct (Free)"
                     >
                       <MessageSquare className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-                      {/* Interaction Pulse for WhatsApp */}
                       <span className="absolute inset-0 rounded-xl bg-emerald-500/20 animate-ping opacity-0 group-hover:opacity-100" />
                     </button>
                     <button 
@@ -213,7 +236,11 @@ export function EscalationsClient({
                       className="w-10 h-10 glass rounded-xl flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all disabled:opacity-50 group"
                       title="Send Email"
                     >
-                      <Mail className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                      {sendingId === rem.invoice_id ? (
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Mail className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                      )}
                     </button>
                   </div>
                 </div>

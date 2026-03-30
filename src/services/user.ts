@@ -13,7 +13,7 @@ export const getUserByFirebaseUid = async (uid: string): Promise<AppUser | null>
     .from('users')
     .select('*')
     .eq('firebase_uid', uid)
-    .single();
+    .maybeSingle();  // returns null (not 406) when no row exists
 
   if (error || !data) return null;
 

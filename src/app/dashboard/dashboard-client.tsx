@@ -119,70 +119,74 @@ export function DashboardClient({
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Aging Distribution */}
-        <div className="lg:col-span-2 glass p-6 lg:p-8 rounded-[2rem] border border-border">
+        <div className="glass p-6 lg:p-8 rounded-[2rem] border border-border">
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h3 className="text-lg font-bold mb-1">Aging Distribution</h3>
-              <p className="text-xs text-muted-foreground">Outstanding balances by overdue bucket (₹ Lakhs)</p>
+              <h3 className="text-lg font-bold mb-1 italic">Aging Distribution</h3>
+              <p className="text-[10px] text-muted-foreground uppercase font-black opacity-60">Capital distribution by days</p>
             </div>
           </div>
 
-          <div className="flex items-end gap-3 h-44 px-2 mb-10">
+          <div className="flex items-end gap-3 h-40 px-2 mb-4">
             {agingData.map((bar, i) => (
               <div key={bar.label} className="flex-1 flex flex-col items-center gap-2 group">
-                <span className="text-[10px] font-bold text-foreground opacity-0 group-hover:opacity-100 transition-opacity bg-secondary px-2 py-0.5 rounded-md">
-                  ₹{bar.value.toFixed(2)}L
-                </span>
                 <motion.div
                   initial={{ height: 0 }} animate={{ height: `${(bar.value / maxAgingValue) * 100}%` }}
                   transition={{ duration: 0.9, delay: i * 0.1, ease: "easeOut" }}
-                  className={`w-full ${bar.color} rounded-t-xl opacity-80 group-hover:opacity-100 transition-opacity`}
-                />
-                <span className="text-[9px] font-bold text-muted-foreground text-center leading-tight">{bar.label}</span>
+                  className={`w-full ${bar.color} rounded-t-xl opacity-80 group-hover:opacity-100 transition-opacity relative shadow-lg`}
+                >
+                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-foreground opacity-0 group-hover:opacity-100 transition-opacity bg-secondary px-2 py-0.5 rounded-md whitespace-nowrap z-10">
+                    ₹{bar.value.toFixed(1)}L
+                  </span>
+                </motion.div>
+                <span className="text-[8px] font-black text-muted-foreground text-center uppercase tracking-tighter">{bar.label}</span>
               </div>
             ))}
           </div>
+        </div>
 
-          {/* Blocked Capital Trend */}
-          <div className="pt-8 border-t border-border/50">
-            <div className="flex items-center gap-2 mb-6">
-               <TrendingUp className="w-4 h-4 text-ruby-500" />
-               <h4 className="text-sm font-black uppercase tracking-widest italic">Capital Risk concentration</h4>
-            </div>
+        {/* Risk Concentration */}
+        <div className="glass p-6 lg:p-8 rounded-[2rem] border border-border">
+          <div className="flex items-center gap-2 mb-6">
+             <TrendingUp className="w-4 h-4 text-ruby-500" />
+             <div>
+               <h3 className="text-lg font-bold mb-1 italic uppercase tracking-tighter">Liquid Capital Concentration</h3>
+               <p className="text-[10px] text-muted-foreground font-black opacity-60 uppercase">Rolling risk analysis (Daily Scan)</p>
+             </div>
+          </div>
+          <div className="h-40">
             {concentrationData && concentrationData.length > 0 ? (
               <BlockedCapitalChart data={concentrationData} />
             ) : (
-              <div className="h-[200px] flex items-center justify-center text-muted-foreground italic text-xs">
+              <div className="h-[120px] flex items-center justify-center text-muted-foreground italic text-xs">
                 Analyzing risk patterns...
               </div>
             )}
           </div>
         </div>
+      </div>
 
-        {/* Quick Insights */}
-        <div className="glass p-6 rounded-[2rem] border border-border">
-          <h3 className="text-lg font-bold mb-6">System Health</h3>
-          <div className="space-y-4">
-            {[
-              { label: "Collection Rate", value: "92%", color: "bg-emerald-500", desc: "Up 4% from last month" },
-              { label: "Invoices Under Dispute", value: "3", color: "bg-amber-500", desc: "Action required on 2 cases" },
-              { label: "New Buyers Onboarded", value: "12", color: "bg-indigo-500", desc: "Awaiting credit limit review" },
-            ].map((item, i) => (
-              <div key={i} className="p-4 bg-secondary/50 rounded-2xl border border-border/50">
-                <div className="flex justify-between mb-1.5">
-                  <span className="text-xs font-bold">{item.label}</span>
-                  <span className="text-xs font-extrabold">{item.value}</span>
-                </div>
-                <div className="h-1.5 w-full bg-border rounded-full overflow-hidden mb-1.5">
-                  <motion.div initial={{ width: 0 }} animate={{ width: item.value }} className={`h-full ${item.color}`} />
-                </div>
-                <p className="text-[10px] text-muted-foreground">{item.desc}</p>
-              </div>
-            ))}
+      {/* System Health Section (Full Width Now) */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {[
+          { label: "Collection Rate", value: "92%", color: "bg-emerald-500", desc: "Performance: Stable" },
+          { label: "Invoices Under Dispute", value: "3", color: "bg-amber-500", desc: "Awaiting ERP Audit" },
+          { label: "Accrued Interest (18%)", value: "₹45.2k", color: "bg-ruby-500", desc: "Total Receivable Loss" },
+          { label: "DSO (Sales Outstanding)", value: "48 Days", color: "bg-indigo-500", desc: "Benchmark: 30 Days" },
+        ].map((item, i) => (
+          <div key={i} className="p-4 glass rounded-2xl border border-border/50 group hover:border-primary/20 transition-all">
+            <div className="flex justify-between mb-1.5 pt-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{item.label}</span>
+              <span className="text-xs font-black text-foreground">{item.value}</span>
+            </div>
+            <div className="h-1 w-full bg-border/30 rounded-full overflow-hidden mb-1.5 mt-2">
+              <motion.div initial={{ width: 0 }} animate={{ width: i === 0 ? "92%" : "60%" }} className={`h-full ${item.color} shadow-[0_0_10px_rgba(0,0,0,0.1)]`} />
+            </div>
+            <p className="text-[9px] font-bold text-muted-foreground italic group-hover:text-primary transition-colors">{item.desc}</p>
           </div>
-        </div>
+        ))}
       </div>
 
       {/* Critical Buyers */}

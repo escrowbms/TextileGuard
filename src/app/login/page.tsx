@@ -10,7 +10,7 @@ import {
   signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, Lock, ArrowRight, Building2, CheckCircle2,
@@ -134,6 +134,7 @@ interface FbUser { uid: string; email: string | null; displayName: string | null
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [current, setCurrent] = useState(0);
   const [mode, setMode] = useState<AuthMode>('signin');
   const [step, setStep] = useState<Step>('auth');
@@ -146,6 +147,16 @@ export default function LoginPage() {
   const [fbUser, setFbUser] = useState<FbUser | null>(null);
   const [companyName, setCompanyName] = useState('');
   const [gst, setGst] = useState('');
+
+  // Handle users routed here with forceOnboarding (Firebase auth but no Supabase row)
+  useEffect(() => {
+    const state = location.state as { forceOnboarding?: boolean; uid?: string; email?: string } | null;
+    if (state?.forceOnboarding && state.uid) {
+      setFbUser({ uid: state.uid, email: state.email ?? null, displayName: null });
+      setStep('onboarding');
+    }
+  }, [location.state]);
+
 
   useEffect(() => {
     const timer = setInterval(() => setCurrent(p => (p + 1) % SLIDES.length), 6000);

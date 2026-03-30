@@ -11,6 +11,7 @@ import EscalationsPage from '@/app/dashboard/escalations/page';
 import SettingsPage from '@/app/dashboard/settings/page';
 import ImportPage from '@/app/dashboard/import/page';
 import RemindersPage from '@/app/dashboard/reminders/page';
+import InterestPage from '@/app/dashboard/interest/page';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Toaster } from 'sonner';
@@ -54,6 +55,7 @@ const App: React.FC = () => {
               <Route path="settings" element={<SettingsPage />} />
               <Route path="import" element={<ImportPage />} />
               <Route path="reminders" element={<RemindersPage />} />
+              <Route path="interest" element={<InterestPage />} />
             </Route>
 
             <Route path="/" element={<LandingPage />} />
