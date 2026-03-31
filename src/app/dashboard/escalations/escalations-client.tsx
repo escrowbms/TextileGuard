@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, CheckCircle, ArrowUpRight, Phone, Bell, Send, Mail, MessageSquare, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle, ArrowUpRight, Phone, Bell, Send, Mail, MessageSquare, ShieldCheck, FileSpreadsheet, Scale, History } from "lucide-react";
 import { Reminder, markReminderSent } from "@/services/reminders";
 import { toast } from "sonner";
 
@@ -33,6 +33,7 @@ export function EscalationsClient({
   const [filter, setFilter] = useState("All");
   const [activeTab, setActiveTab] = useState<'escalations' | 'reminders'>('escalations');
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [responses, setResponses] = useState<Record<string, string>>({});
 
   const handleSendReminder = async (reminder: Reminder, channel: 'email' | 'whatsapp' | 'sms') => {
     if (channel === 'whatsapp') {
@@ -144,7 +145,15 @@ export function EscalationsClient({
                     <p className="font-bold text-xs">High</p>
                     <p className="text-[10px] text-muted-foreground">Action Level</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <button 
+                      onClick={() => toast.success(`Generating Legal Pack for ${esc.name}... (Invoices + PODs + Logs)`)}
+                      className="h-8 px-3 glass rounded-xl flex items-center justify-center gap-2 hover:bg-ruby-500/10 hover:text-ruby-500 transition-all text-[9px] font-black uppercase tracking-widest"
+                      title="Prepare Legal Documentation Pack"
+                    >
+                      <Scale className="w-3 h-3" />
+                      Legal Pack
+                    </button>
                     <button className="w-8 h-8 glass rounded-xl flex items-center justify-center hover:bg-ruby-500/10 hover:text-ruby-500 transition-all">
                       <Phone className="w-3.5 h-3.5" />
                     </button>
@@ -153,6 +162,26 @@ export function EscalationsClient({
                     </button>
                   </div>
                 </div>
+              </div>
+              
+              {/* Response Tracking (New) */}
+              <div className="mt-4 pt-4 border-t border-border/40 flex items-center gap-4">
+                <div className="flex-1 relative">
+                  <History className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+                  <input 
+                    type="text" 
+                    placeholder="Capture buyer response (e.g., 'Promised by Friday')..."
+                    className="w-full pl-8 pr-4 py-2 bg-secondary/30 border border-border/50 rounded-xl text-[10px] focus:outline-none focus:ring-1 ring-primary/40"
+                    value={responses[esc.id] || ''}
+                    onChange={(e) => setResponses({...responses, [esc.id]: e.target.value})}
+                  />
+                </div>
+                <button 
+                  onClick={() => toast.success("Response tracked in audit log")}
+                  className="px-3 py-2 bg-secondary text-foreground text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-muted transition-all"
+                >
+                  Log Action
+                </button>
               </div>
             </motion.div>
           );

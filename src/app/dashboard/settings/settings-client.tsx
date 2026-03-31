@@ -14,12 +14,14 @@ import {
   Globe,
   Lock,
   Smartphone,
-  CheckCircle2
+  CheckCircle2,
+  Scale
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { getUserByFirebaseUid } from '@/services/user';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { ClauseTemplates } from './ClauseTemplates';
 
 interface CompanySettings {
   enforce_credit_limit: boolean;
@@ -270,6 +272,10 @@ export default function SettingsClient() {
            </div>
         </div>
       </div>
+
+      {/* Invoice Strengthening Section */}
+      <ClauseTemplates companyId={company?.id} />
+
     </div>
   );
 }

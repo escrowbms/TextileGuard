@@ -170,35 +170,90 @@ export const syncErpData = async (
 };
 
 /**
- * Mock/Simple XML Parser for Tally standard exports
- * In a real-world scenario, we'd use a more robust XML parser library
+ * Robust XML Parser for Tally standard exports
  */
 export const parseTallyXml = (xmlContent: string): { customers: ErpCustomer[], invoices: ErpInvoice[] } => {
-  // Veteran approach: Use a simple regex-based parser to avoid heavy dependencies for a "Free-Tier" SPA
-  // This is a placeholder for the logic that will extract <LEDGER> and <VOUCHER> tags
   const customers: ErpCustomer[] = [];
   const invoices: ErpInvoice[] = [];
 
-  // Logic to parse <LEDGER> (Customers)
+  // Extract Ledgers (Potential Customers)
+  // Tally uses <LEDGER NAME="..."> tags
   const ledgerMatches = xmlContent.matchAll(/<LEDGER NAME="([^"]+)"[^>]*>.*?<\/LEDGER>/gs);
   for (const match of ledgerMatches) {
     const name = match[1];
-    // Extract other fields like phone, email if present
-    customers.push({ name, creditLimit: 0 });
+    // Simple deduplication logic
+    if (!customers.find(c => c.name === name)) {
+      customers.push({ name, creditLimit: 100000 }); // Default 1L limit for new
+    }
   }
 
-  // Logic to parse <VOUCHER> (Invoices)
-  const voucherMatches = xmlContent.matchAll(/<VOUCHER VCHTYPE="Sales"[^>]*>.*?<VOUCHERNUMBER>([^<]+)<\/VOUCHERNUMBER>.*?<PARTYLEDGERNAME>([^<]+)<\/PARTYLEDGERNAME>.*?<AMOUNT>([^<]+)<\/AMOUNT>.*?<\/VOUCHER>/gs);
+  // Extract Vouchers (Sales Invoices)
+  // Standard Sales Voucher
+  const voucherMatches = xmlContent.matchAll(/<VOUCHER VCHTYPE="Sales"[^>]*>.*?<VOUCHERNUMBER>([^<]+)<\/VOUCHERNUMBER>.*?<PARTYLEDGERNAME>([^<]+)<\/PARTYLEDGERNAME>.*?<DATE>([^<]+)<\/DATE>.*?<AMOUNT>([^<]+)<\/AMOUNT>.*?<\/VOUCHER>/gs);
   for (const match of voucherMatches) {
-    const [, vchNo, party, amount] = match;
+    const [, vchNo, party, dateStr, amount] = match;
+    
+    // Convert Tally Date 20240401 to ISO
+    let dueDate = new Date().toISOString();
+    if (dateStr && dateStr.length === 8) {
+      dueDate = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+    }
+
     invoices.push({
       invoiceNumber: vchNo,
       customerName: party,
       totalAmount: Math.abs(parseFloat(amount)),
       balanceDue: Math.abs(parseFloat(amount)),
-      dueDate: new Date().toISOString(), // Fallback
+      dueDate: dueDate,
       status: 'pending'
     });
+  }
+
+  return { customers, invoices };
+};
+
+/**
+ * Generic CSV Parser for custom ERP exports
+ */
+export const parseErpCsv = (csvContent: string): { customers: ErpCustomer[], invoices: ErpInvoice[] } => {
+  const lines = csvContent.split(/\r?\n/);
+  const customers: ErpCustomer[] = [];
+  const invoices: ErpInvoice[] = [];
+
+  if (lines.length < 2) return { customers, invoices };
+
+  // Expecting Header: Customer Name, Phone, GST, Invoice #, Invoice Date, Amount
+  const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+  
+  for (let i = 1; i < lines.length; i++) {
+    const row = lines[i].split(',').map(c => c.trim());
+    if (row.length < 3 || !row[0]) continue;
+
+    const custName = row[0];
+    const phone = row[1] || '';
+    const gst = row[2] || '';
+    const invNo = row[3] || `CSV-${Math.random().toString(36).substring(7)}`;
+    const invDateStr = row[4] || new Date().toISOString().split('T')[0];
+    const amount = parseFloat(row[5]) || 0;
+
+    // Add unique customer
+    if (!customers.find(c => c.name === custName)) {
+      customers.push({
+        name: custName,
+        phone: phone,
+        gstNumber: gst,
+        creditLimit: 500000
+      });
+    }
+
+    invoices.push({
+      invoiceNumber: invNo,
+      customerName: custName,
+      totalAmount: amount,
+      balance_due: amount, // Match internal field name expectation
+      dueDate: invDateStr,
+      status: 'pending'
+    } as any);
   }
 
   return { customers, invoices };

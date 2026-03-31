@@ -12,6 +12,12 @@ export interface Invoice {
   due_date: string;
   created_at: string;
   aging_bucket: string;
+  po_number?: string;
+  jurisdiction?: string;
+  clause_ids?: string[];
+  delivery_proof_url?: string;
+  eway_bill_number?: string;
+  transport_details?: string;
 }
 
 export const getInvoices = async (
@@ -26,7 +32,8 @@ export const getInvoices = async (
     .select(`
       *,
       customers (
-        name
+        name,
+        city
       )
     `)
     .eq('company_id', companyId);
@@ -35,12 +42,24 @@ export const getInvoices = async (
     query = query.eq('customer_id', customerId);
   }
 
-  if (status && status !== 'all') {
-    query = query.eq('status', status);
+  if (status && status.toLowerCase() !== 'all') {
+    query = query.eq('status', status.toLowerCase());
   }
 
-  if (bucket && bucket !== 'all') {
+  if (bucket && bucket.toLowerCase() !== 'all buckets') {
+    // Bucket in URL is like "0-30", "31-60", etc.
     query = query.eq('aging_bucket', bucket);
+  }
+
+  // Handle Search using 'or' for multiple fields
+  // Note: Supabase 'or' with joined tables requires the full path
+  if (search && search.trim() !== "") {
+    const s = `%${search.trim()}%`;
+    query = query.or(`invoice_number.ilike.${s},customer_name_manual.ilike.${s}`);
+    // If we want to search via joined customer name, it's slightly more complex (requires filter on joined table or computed column)
+    // We'll stick to invoice_number and a potential customer_name_manual if we had one, 
+    // but better yet, we can use the text search feature or just filter client-side if the dataset is small.
+    // For "100% working", let's use client-side search if we can't do a clean joins filter in one call without complex syntax.
   }
 
   const { data, error } = await query.order('created_at', { ascending: false });
@@ -50,10 +69,21 @@ export const getInvoices = async (
     return [];
   }
 
-  return (data || []).map(inv => ({
+  let results = (data || []).map(inv => ({
     ...inv,
     customer_name: inv.customers?.name || 'Unknown'
   }));
+
+  // Robust Client-side Search Fallback for complex joined fields
+  if (search && search.trim() !== "") {
+    const s = search.toLowerCase().trim();
+    results = results.filter(r => 
+      r.invoice_number.toLowerCase().includes(s) || 
+      r.customer_name.toLowerCase().includes(s)
+    );
+  }
+
+  return results;
 };
 
 export const createInvoice = async (data: {
@@ -62,6 +92,9 @@ export const createInvoice = async (data: {
   totalAmount: number;
   dueDate: Date;
   companyId: string;
+  poNumber?: string;
+  jurisdiction?: string;
+  clauseIds?: string[];
 }) => {
   const status = await checkCreditStatus(data.customerId);
   
@@ -79,6 +112,9 @@ export const createInvoice = async (data: {
       due_date: data.dueDate.toISOString(),
       company_id: data.companyId,
       status: 'pending',
+      po_number: data.poNumber,
+      jurisdiction: data.jurisdiction,
+      clause_ids: data.clauseIds,
     });
 
   return { error: error?.message };

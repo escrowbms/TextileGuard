@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownRight, LucideIcon, RefreshCw, Zap, TrendingUp } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, LucideIcon, RefreshCw, Zap, TrendingUp, AlertTriangle, Clock } from "lucide-react";
 import { useState } from "react";
 import { BlockedCapitalChart } from "@/components/dashboard/BlockedCapitalChart";
 
@@ -38,7 +38,7 @@ const riskColors: Record<string, string> = {
 };
 
 export function DashboardClient({ 
-  stats, agingData, criticalBuyers, lastSync, remindersCount, concentrationData, onTriggerSync 
+  stats, agingData, criticalBuyers, lastSync, remindersCount, concentrationData, analytics, onTriggerSync 
 }: { 
   stats: Stat[], 
   agingData: AgingBar[], 
@@ -46,6 +46,7 @@ export function DashboardClient({
   lastSync?: string,
   remindersCount?: number,
   concentrationData?: any[],
+  analytics?: any,
   onTriggerSync?: () => Promise<void>
 }) {
   const [isSyncing, setIsSyncing] = useState(false);
@@ -82,85 +83,99 @@ export function DashboardClient({
           {isSyncing ? 'Scanning...' : 'Sync Automation'}
         </button>
       </div>
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4 font-inter">
+      {/* Stats Grid - Snowy White Aesthetic */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-inter">
         {stats.map((stat, i) => {
           const isGood = stat.trend === 'good' || stat.trend === 'up';
+          const isCritical = stat.title.includes('Overdue') || stat.title.includes('Blocked') || stat.title.includes('Loss');
+          
           return (
             <motion.div 
               key={stat.title} 
-              initial={{ opacity: 0, y: 20 }} 
+              initial={{ opacity: 0, y: 15 }} 
               animate={{ opacity: 1, y: 0 }} 
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              transition={{ delay: i * 0.05 }}
-              className="glass p-4 lg:p-5 rounded-[2rem] border border-border group hover:border-primary/40 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] relative overflow-hidden"
+              whileHover={{ 
+                y: -4, 
+                transition: { duration: 0.2, ease: "easeOut" } 
+              }}
+              transition={{ delay: i * 0.04 }}
+              className="relative group cursor-default h-full"
             >
-              {/* Intentional Glow */}
-              <div className={`absolute -right-4 -top-4 w-16 h-16 blur-2xl opacity-20 rounded-full transition-opacity group-hover:opacity-40 ${
-                isGood ? 'bg-emerald-500' : 'bg-ruby-500'
-              }`} />
-              
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <div className={`w-9 h-9 ${stat.bg} rounded-xl flex items-center justify-center shadow-inner`}>
-                  <stat.icon className={`w-4 h-4 ${stat.color}`} />
+              <div className="relative bg-white/90 backdrop-blur-2xl p-4 lg:p-5 rounded-[1.8rem] border border-slate-200/80 shadow-[0_8px_30px_-15px_rgba(0,0,0,0.05)] h-full flex flex-col justify-between overflow-hidden transition-all group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] group-hover:bg-white">
+                <div className={`absolute -right-10 -top-10 w-24 h-24 blur-3xl opacity-[0.03] group-hover:opacity-[0.06] rounded-full transition-opacity ${
+                  isCritical ? 'bg-ruby-500' : isGood ? 'bg-emerald-500' : 'bg-primary'
+                }`} />
+
+                <div className="relative z-10 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div className={`w-10 h-10 ${stat.bg.replace('/10', '/20')} rounded-2xl flex items-center justify-center shadow-sm border border-white`}>
+                      <stat.icon className={`w-5 h-5 ${stat.color} drop-shadow-sm`} />
+                    </div>
+                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter border ${
+                      isGood ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-ruby-500/10 text-ruby-500 border-ruby-500/20'
+                    }`}>
+                      {stat.change}
+                    </div>
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400 group-hover:text-slate-500 transition-colors leading-none">
+                      {stat.title}
+                    </p>
+                    <h4 className="text-xl lg:text-2xl font-black tracking-tight text-slate-900 group-hover:text-primary transition-colors">
+                      {stat.value}
+                    </h4>
+                  </div>
                 </div>
-                <span className={`text-[10px] lg:text-xs font-bold flex items-center gap-0.5 px-2 py-1 rounded-full ${
-                  isGood ? 'bg-emerald-500/10 text-emerald-500' : 'bg-ruby-500/10 text-ruby-500'
-                }`}>
-                  {isGood ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  {stat.change}
-                </span>
               </div>
-              <p className="text-[10px] lg:text-xs text-muted-foreground font-semibold mb-1 truncate uppercase tracking-widest">{stat.title}</p>
-              <h4 className="text-lg lg:text-2xl font-black tracking-tighter text-foreground">{stat.value}</h4>
             </motion.div>
           );
         })}
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Aging Distribution */}
-        <div className="glass p-6 lg:p-8 rounded-[2rem] border border-border">
-          <div className="flex justify-between items-start mb-8">
+        <div className="glass p-5 lg:p-6 rounded-[1.8rem] border border-border">
+          <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="text-lg font-bold mb-1 italic">Aging Distribution</h3>
-              <p className="text-[10px] text-muted-foreground uppercase font-black opacity-60">Capital distribution by days</p>
+              <h3 className="text-base font-bold mb-0.5 italic">Aging Distribution</h3>
+              <p className="text-[9px] text-muted-foreground uppercase font-black opacity-60">Capital distribution</p>
             </div>
           </div>
 
-          <div className="flex items-end gap-3 h-40 px-2 mb-4">
+          <div className="flex items-end gap-2.5 h-32 px-1 mb-2">
             {agingData.map((bar, i) => (
-              <div key={bar.label} className="flex-1 flex flex-col items-center gap-2 group">
+              <div key={bar.label} className="flex-1 flex flex-col items-center gap-1.5 group">
                 <motion.div
                   initial={{ height: 0 }} animate={{ height: `${(bar.value / maxAgingValue) * 100}%` }}
                   transition={{ duration: 0.9, delay: i * 0.1, ease: "easeOut" }}
-                  className={`w-full ${bar.color} rounded-t-xl opacity-80 group-hover:opacity-100 transition-opacity relative shadow-lg`}
+                  className={`w-full ${bar.color} rounded-t-lg opacity-80 group-hover:opacity-100 transition-opacity relative shadow-lg`}
                 >
-                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-foreground opacity-0 group-hover:opacity-100 transition-opacity bg-secondary px-2 py-0.5 rounded-md whitespace-nowrap z-10">
+                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-bold text-foreground opacity-0 group-hover:opacity-100 transition-opacity bg-secondary px-2 py-0.5 rounded-md whitespace-nowrap z-10">
                     ₹{bar.value.toFixed(1)}L
                   </span>
                 </motion.div>
-                <span className="text-[8px] font-black text-muted-foreground text-center uppercase tracking-tighter">{bar.label}</span>
+                <span className="text-[7px] font-black text-muted-foreground text-center uppercase tracking-tighter">{bar.label}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Risk Concentration */}
-        <div className="glass p-6 lg:p-8 rounded-[2rem] border border-border">
-          <div className="flex items-center gap-2 mb-6">
-             <TrendingUp className="w-4 h-4 text-ruby-500" />
+        <div className="glass p-5 lg:p-6 rounded-[1.8rem] border border-border">
+          <div className="flex items-center gap-2 mb-4">
+             <TrendingUp className="w-3.5 h-3.5 text-ruby-500" />
              <div>
-               <h3 className="text-lg font-bold mb-1 italic uppercase tracking-tighter">Liquid Capital Concentration</h3>
-               <p className="text-[10px] text-muted-foreground font-black opacity-60 uppercase">Rolling risk analysis (Daily Scan)</p>
+               <h3 className="text-base font-bold mb-0.5 italic uppercase tracking-tighter">Liquid Capital Concentration</h3>
+               <p className="text-[9px] text-muted-foreground font-black opacity-60 uppercase">Rolling risk analysis</p>
              </div>
           </div>
-          <div className="h-40">
+          <div className="h-32">
             {concentrationData && concentrationData.length > 0 ? (
               <BlockedCapitalChart data={concentrationData} />
             ) : (
-              <div className="h-[120px] flex items-center justify-center text-muted-foreground italic text-xs">
+              <div className="h-[100px] flex items-center justify-center text-muted-foreground italic text-[10px]">
                 Analyzing risk patterns...
               </div>
             )}
@@ -169,39 +184,57 @@ export function DashboardClient({
       </div>
 
       {/* System Health Section (Full Width Now) */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Collection Rate", value: "92%", color: "bg-emerald-500", desc: "Performance: Stable" },
-          { label: "Invoices Under Dispute", value: "3", color: "bg-amber-500", desc: "Awaiting ERP Audit" },
-          { label: "Accrued Interest (18%)", value: "₹45.2k", color: "bg-ruby-500", desc: "Total Receivable Loss" },
-          { label: "DSO (Sales Outstanding)", value: "48 Days", color: "bg-indigo-500", desc: "Benchmark: 30 Days" },
+          { label: "Collection Rate", value: `${analytics?.collectionRate || 0}%`, color: "bg-emerald-500", icon: Zap, desc: analytics?.collectionRate > 80 ? "PEAK PERFORMANCE" : "ATTENTION REQ.", progress: analytics?.collectionRate || 0 },
+          { label: "Disputed Load", value: criticalBuyers.length.toString(), color: "bg-amber-500", icon: AlertTriangle, desc: "AWAITING ACTION", progress: 60 },
+          { label: "Lost Interest", value: `₹${(analytics?.interestLoss / 1000).toFixed(1)}k`, color: "bg-ruby-500", icon: TrendingUp, desc: "ROI LEAKAGE", progress: 40 },
+          { label: "DSO INDEX", value: `${analytics?.dso || 0}D`, color: "bg-indigo-500", icon: Clock, desc: analytics?.dso > 30 ? "ABOVE TARGET" : "HEALTHY FLOW", progress: analytics?.dso > 60 ? 90 : 50 },
         ].map((item, i) => (
-          <div key={i} className="p-4 glass rounded-2xl border border-border/50 group hover:border-primary/20 transition-all">
-            <div className="flex justify-between mb-1.5 pt-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{item.label}</span>
-              <span className="text-xs font-black text-foreground">{item.value}</span>
+          <div key={i} className="relative group overflow-hidden">
+            <div className={`absolute inset-0 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity ${item.color}`} />
+            <div className={`relative p-4 bg-white/90 backdrop-blur-xl rounded-[1.5rem] border border-slate-200/60 group-hover:border-primary/30 transition-all h-full shadow-sm group-hover:shadow-md`}>
+              <div className="flex justify-between items-start mb-3">
+                <div className={`p-2 rounded-xl ${item.color.replace('bg-', 'bg-')}/10 border border-white shadow-sm`}>
+                  <item.icon className={`w-4 h-4 ${item.color.replace('bg-', 'text-')}`} />
+                </div>
+                <div className="text-right">
+                  <span className="text-[8px] font-black uppercase tracking-[0.15em] text-slate-400 block mb-0.5">{item.label}</span>
+                  <span className="text-lg font-black text-slate-900">{item.value}</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }} 
+                    animate={{ width: `${item.progress}%` }} 
+                    transition={{ duration: 1.5, delay: i * 0.1, ease: "circOut" }}
+                    className={`h-full ${item.color} rounded-full`} 
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <p className={`text-[7px] font-black tracking-widest ${item.color.replace('bg-', 'text-')} transition-colors`}>{item.desc}</p>
+                </div>
+              </div>
             </div>
-            <div className="h-1 w-full bg-border/30 rounded-full overflow-hidden mb-1.5 mt-2">
-              <motion.div initial={{ width: 0 }} animate={{ width: i === 0 ? "92%" : "60%" }} className={`h-full ${item.color} shadow-[0_0_10px_rgba(0,0,0,0.1)]`} />
-            </div>
-            <p className="text-[9px] font-bold text-muted-foreground italic group-hover:text-primary transition-colors">{item.desc}</p>
           </div>
         ))}
       </div>
 
       {/* Critical Buyers */}
-      <div className="glass rounded-[2rem] border border-border overflow-hidden">
-        <div className="flex justify-between items-center p-6 lg:p-8 pb-4">
+      <div className="glass rounded-[1.8rem] border border-border overflow-hidden">
+        <div className="flex justify-between items-center p-5 lg:p-6 pb-3">
           <div>
-            <h3 className="text-lg font-bold">Risk Management</h3>
-            <p className="text-xs text-muted-foreground mt-1">High-risk buyers prioritized by scoring engine</p>
+            <h3 className="text-base font-bold">Risk Management</h3>
+            <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Prioritized by scoring engine</p>
           </div>
-          <button className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
-            View All Customers <ArrowUpRight className="w-3 h-3" />
+          <button className="text-[10px] font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+            View All <ArrowUpRight className="w-3 h-3" />
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden lg:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-t border-border bg-secondary/50">
@@ -225,13 +258,44 @@ export function DashboardClient({
                   </td>
                 </motion.tr>
               ))}
-              {criticalBuyers.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-muted-foreground italic">No critical buyers at the moment.</td>
-                </tr>
-              )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile-Friendly Risk Cards */}
+        <div className="lg:hidden divide-y divide-border border-t border-border">
+          {criticalBuyers.map((buyer, i) => (
+            <motion.div 
+              key={buyer.name} 
+              initial={{ opacity: 0, x: -10 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              transition={{ delay: i * 0.05 }}
+              className="p-4 active:bg-secondary/50 transition-colors"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="font-bold text-sm text-foreground">{buyer.name}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{buyer.city || 'Industrial Region'}</p>
+                </div>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${riskColors[buyer.riskLevel] || riskColors.low}`}>
+                  {buyer.isCreditFrozen ? 'FROZEN' : buyer.riskLevel.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex justify-between items-end">
+                <div className="space-y-1">
+                   <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Active Exposure</p>
+                   <p className="text-sm font-black text-ruby-500 tracking-tight">₹{(Number(buyer.exposure)/100000).toFixed(2)}L</p>
+                </div>
+                <div className="text-right space-y-1">
+                   <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Risk Index</p>
+                   <p className="text-sm font-black text-foreground">{buyer.riskScore}/100</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+          {criticalBuyers.length === 0 && (
+            <div className="py-12 text-center text-muted-foreground italic text-sm">No critical buyers.</div>
+          )}
         </div>
       </div>
     </div>

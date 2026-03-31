@@ -5,6 +5,9 @@ export interface FinancialAnalytics {
   blockedCapital: number; // Sum of all invoices in 'Red' buckets (61+ days)
   interestLoss: number;   // Calculated based on aging and interest rate
   interestRate: number;   // Current annual rate used for calculation
+  avgStrength: number;    // Average legal strength (0-100)
+  collectionRate: number; // Percentage of invoices paid on time
+  dso: number;            // Days Sales Outstanding
 }
 
 const DEFAULT_INTEREST_RATE = Number(import.meta.env.VITE_DEFAULT_INTEREST_RATE) || 18;
@@ -16,9 +19,8 @@ const DEFAULT_INTEREST_RATE = Number(import.meta.env.VITE_DEFAULT_INTEREST_RATE)
 export const getFinancialAnalytics = async (companyId: string): Promise<FinancialAnalytics> => {
   const { data: invoices } = await supabase
     .from('invoices')
-    .select('balance_due, status, due_date, aging_bucket')
-    .eq('company_id', companyId)
-    .neq('status', 'paid');
+    .select('balance_due, status, due_date, aging_bucket, po_number, clause_ids, eway_bill_number, jurisdiction, total_amount, created_at')
+    .eq('company_id', companyId);
 
   // Fetch company settings for custom rates
   const { data: company } = await supabase
@@ -34,12 +36,21 @@ export const getFinancialAnalytics = async (companyId: string): Promise<Financia
   let totalOverdue = 0;
   let blockedCapital = 0;
   let totalInterestLoss = 0;
+  let totalInvoicesWithScore = 0;
+  let cumulativeStrength = 0;
+  let paidLast30 = 0;
+  let dueLast30 = 0;
+  let totalAgingDays = 0;
+  let totalInvoicesForDSO = 0;
 
   const today = new Date();
 
   invoices?.forEach(inv => {
     const amount = Number(inv.balance_due);
-    
+    const totalAmount = Number(inv.total_amount);
+    const createdAt = new Date(inv.created_at);
+    const dueDate = new Date(inv.due_date);
+
     // 1. Total Overdue
     if (inv.status === 'overdue') {
       totalOverdue += amount;
@@ -47,14 +58,12 @@ export const getFinancialAnalytics = async (companyId: string): Promise<Financia
 
     // 2. Blocked Capital (Defined as invoices in 61-90, 91-180, or 180+ buckets)
     const criticalBuckets = ['61-90', '91-180', '180+'];
-    if (inv.aging_bucket && criticalBuckets.includes(inv.aging_bucket)) {
+    if (inv.aging_bucket && criticalBuckets.includes(inv.aging_bucket) && inv.status !== 'paid') {
       blockedCapital += amount;
     }
 
     // 3. Interest Loss Calculation
-    // Only calculate if overdue days > grace period
-    const dueDate = new Date(inv.due_date);
-    if (dueDate < today) {
+    if (inv.status !== 'paid' && dueDate < today) {
       const diffTime = Math.abs(today.getTime() - dueDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
@@ -65,13 +74,43 @@ export const getFinancialAnalytics = async (companyId: string): Promise<Financia
         totalInterestLoss += dailyLoss * effectiveDays;
       }
     }
+
+    // 4. Collection Rate & DSO Stats
+    const isWithin30Days = (today.getTime() - createdAt.getTime()) <= (30 * 24 * 60 * 60 * 1000);
+    if (isWithin30Days) {
+      dueLast30 += totalAmount;
+      if (inv.status === 'paid') {
+        paidLast30 += totalAmount;
+      }
+    }
+
+    if (inv.status !== 'paid') {
+      const diffTime = Math.abs(today.getTime() - createdAt.getTime());
+      totalAgingDays += Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      totalInvoicesForDSO++;
+    }
+
+    // 5. Strength/Enforcement Calculation
+    if (inv.status !== 'paid') {
+      let strength = 0;
+      if (inv.po_number) strength += 25;
+      if (inv.eway_bill_number) strength += 25;
+      if (inv.clause_ids && inv.clause_ids.length > 0) strength += 25;
+      if (inv.jurisdiction && inv.jurisdiction !== 'Local Jurisdiction Only') strength += 25;
+      
+      cumulativeStrength += strength;
+      totalInvoicesWithScore++;
+    }
   });
 
   return {
     totalOverdue,
     blockedCapital,
     interestLoss: Math.round(totalInterestLoss),
-    interestRate
+    interestRate,
+    avgStrength: totalInvoicesWithScore > 0 ? Math.round(cumulativeStrength / totalInvoicesWithScore) : 0,
+    collectionRate: dueLast30 > 0 ? Math.round((paidLast30 / dueLast30) * 100) : 100,
+    dso: totalInvoicesForDSO > 0 ? Math.round(totalAgingDays / totalInvoicesForDSO) : 0
   };
 };
 

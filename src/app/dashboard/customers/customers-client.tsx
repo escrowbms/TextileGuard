@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Plus, ArrowUpRight, X, UserPlus, Info, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import { createCustomer } from "@/services/customers";
+import { createCustomer, recalculateAllRiskScores } from "@/services/customers";
 
 interface Customer {
   id: string;
@@ -44,6 +44,7 @@ export function CustomersClient({
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     city: "",
     gstNumber: "",
     creditLimit: "",
@@ -65,6 +66,7 @@ export function CustomersClient({
       ...formData,
       creditLimit: parseFloat(formData.creditLimit) || 0,
       companyId: companyId,
+      phone: formData.phone,
     });
 
     if (res.error) {
@@ -74,7 +76,7 @@ export function CustomersClient({
     } else {
       toast.success("Customer added successfully!");
       setShowAddModal(false);
-      setFormData({ name: "", email: "", city: "", gstNumber: "", creditLimit: "" });
+      setFormData({ name: "", email: "", phone: "", city: "", gstNumber: "", creditLimit: "" });
       setLoading(false);
       window.location.reload();
     }
@@ -130,9 +132,15 @@ export function CustomersClient({
                     <input type="text" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} placeholder="Surat" className="w-full px-5 py-3.5 bg-secondary/30 border border-border/60 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/40" />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2 ml-1">Business Email</label>
-                  <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="contact@mahavir.com" className="w-full px-5 py-3.5 bg-secondary/30 border border-border/60 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/40" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2 ml-1">Business Email</label>
+                    <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="contact@mahavir.com" className="w-full px-5 py-3.5 bg-secondary/30 border border-border/60 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/40" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2 ml-1">WhatsApp Phone *</label>
+                    <input type="tel" required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+91 9876543210" className="w-full px-5 py-3.5 bg-secondary/30 border border-border/60 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/40" />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2 ml-1">Initial Credit Limit (INR) *</label>
@@ -165,6 +173,17 @@ export function CustomersClient({
             </button>
           ))}
         </div>
+        <button 
+          onClick={async () => {
+            const count = await recalculateAllRiskScores(companyId);
+            toast.success(`Recalculated risk for ${count} customers.`);
+            window.location.reload();
+          }}
+          className="px-6 py-3 glass rounded-2xl text-[10px] font-black uppercase tracking-widest border border-border hover:bg-secondary transition-all whitespace-nowrap flex items-center gap-2"
+        >
+          <ArrowRight className="w-4 h-4" />
+          Recalculate Risk
+        </button>
         <button onClick={() => setShowAddModal(true)} className="flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-bold text-sm rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 whitespace-nowrap">
           <Plus className="w-4 h-4" /> Add Entity
         </button>

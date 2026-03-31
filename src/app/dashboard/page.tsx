@@ -1,7 +1,7 @@
 'use client';
 
 import { 
-  TrendingUp, AlertCircle, Clock, ArrowUpRight, ArrowDownRight, Users, IndianRupee, Building2, ArrowRight
+  TrendingUp, AlertCircle, Clock, ArrowUpRight, ArrowDownRight, Users, IndianRupee, Building2, ArrowRight, ShieldCheck, Send
 } from "lucide-react";
 import { 
   getDashboardStats, 
@@ -210,10 +210,20 @@ export default function DashboardPage() {
       change: "High Risk", trend: "down", icon: AlertCircle, color: "text-ruby-500", bg: "bg-ruby-500/10" 
     },
     { 
-      title: "Interest Loss (Total)", 
+      title: "Interest Loss", 
       value: `₹${data.analytics.interestLoss.toLocaleString()}`, 
       change: `@${data.analytics.interestRate}%`, trend: "down", icon: TrendingUp, color: "text-ruby-600", bg: "bg-ruby-600/10" 
     },
+    { 
+      title: "Legal Strength", 
+      value: `${data.analytics.avgStrength}%`, 
+      change: data.analytics.avgStrength > 70 ? "Strong" : "Weak", trend: "up", icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10" 
+    },
+    { 
+      title: "Rule Reminders", 
+      value: data.remindersCount.toString(), 
+      change: "Automated Queue", trend: "up", icon: Send, color: "text-primary", bg: "bg-primary/10" 
+    }
   ];
 
   const bucketColors: Record<string, string> = {
@@ -237,6 +247,7 @@ export default function DashboardPage() {
       criticalBuyers={data.critical as any} 
       remindersCount={data.remindersCount}
       concentrationData={data.concentration}
+      analytics={data.analytics}
       onTriggerSync={handleTriggerSync}
     />
   );

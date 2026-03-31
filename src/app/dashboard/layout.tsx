@@ -117,30 +117,30 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
       <AuthGuard>
         <div className="flex min-h-screen bg-background text-foreground">
           {/* Desktop Sidebar */}
-          <aside className="w-72 glass border-r border-border p-6 hidden lg:flex flex-col sticky top-0 h-screen">
+          <aside className="w-64 glass border-r border-border p-5 hidden lg:flex flex-col sticky top-0 h-screen">
             <SidebarContent />
           </aside>
 
           {/* Mobile Header (Fixed Top) */}
-          <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-xl border-b border-border z-40 px-4 flex items-center justify-between">
+          <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-background/80 backdrop-blur-xl border-b border-border z-40 px-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <ShieldCheck className="text-white w-5 h-5" />
+              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+                <ShieldCheck className="text-white w-4 h-4" />
               </div>
-              <span className="font-bold text-base tracking-tight">TextileGuard</span>
+              <span className="font-bold text-sm tracking-tight">TextileGuard</span>
             </div>
             
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center font-bold text-[10px] text-primary border border-primary/20">
+              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center font-bold text-[9px] text-primary border border-primary/20">
                 {userInitials}
               </div>
             </div>
           </div>
 
           {/* Main Content */}
-          <main className="flex-1 p-4 lg:p-10 max-w-7xl mx-auto w-full pt-20 lg:pt-10 pb-32 lg:pb-10">
-            <header className="flex justify-between items-center mb-6 lg:mb-12">
+          <main className="flex-1 p-4 lg:p-6 max-w-[1600px] mx-auto w-full pt-18 lg:pt-6 pb-28 lg:pb-6">
+            <header className="flex justify-between items-center mb-4 lg:mb-8">
               <div>
                 <h1 className="text-xl lg:text-3xl font-extrabold tracking-tight">
                   {getPageTitle(pathname)}

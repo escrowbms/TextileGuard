@@ -1,17 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import LandingPage from '@/app/LandingPage';
 import LoginPage from '@/app/login/page';
 import DashboardLayout from '@/app/dashboard/layout';
-import DashboardPage from '@/app/dashboard/page';
-import InvoicesPage from '@/app/dashboard/invoices/page';
-import CustomersPage from '@/app/dashboard/customers/page';
-import CustomerDetailPage from '@/app/dashboard/customers/customer-detail';
-import EscalationsPage from '@/app/dashboard/escalations/page';
-import SettingsPage from '@/app/dashboard/settings/page';
-import ImportPage from '@/app/dashboard/import/page';
-import RemindersPage from '@/app/dashboard/reminders/page';
-import InterestPage from '@/app/dashboard/interest/page';
+
+const DashboardPage = lazy(() => import('@/app/dashboard/page'));
+const InvoicesPage = lazy(() => import('@/app/dashboard/invoices/page'));
+const CustomersPage = lazy(() => import('@/app/dashboard/customers/page'));
+const CustomerDetailPage = lazy(() => import('@/app/dashboard/customers/customer-detail'));
+const EscalationsPage = lazy(() => import('@/app/dashboard/escalations/page'));
+const SettingsPage = lazy(() => import('@/app/dashboard/settings/page'));
+const ImportPage = lazy(() => import('@/app/dashboard/import/page'));
+const RemindersPage = lazy(() => import('@/app/dashboard/reminders/page'));
+const InterestPage = lazy(() => import('@/app/dashboard/interest/page'));
+
+const LoadingFallback = () => (
+  <div className="p-8 text-center text-muted-foreground animate-pulse font-bold tracking-widest uppercase text-[10px]">
+    Synchronizing Textile Intelligence...
+  </div>
+);
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Toaster } from 'sonner';
@@ -47,15 +54,51 @@ const App: React.FC = () => {
             <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
             
             <Route path="/dashboard" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="invoices" element={<InvoicesPage />} />
-              <Route path="customers" element={<CustomersPage />} />
-              <Route path="customers/:id" element={<CustomerDetailPage />} />
-              <Route path="escalations" element={<EscalationsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="import" element={<ImportPage />} />
-              <Route path="reminders" element={<RemindersPage />} />
-              <Route path="interest" element={<InterestPage />} />
+              <Route index element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <DashboardPage />
+                </Suspense>
+              } />
+              <Route path="invoices" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <InvoicesPage />
+                </Suspense>
+              } />
+              <Route path="customers" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <CustomersPage />
+                </Suspense>
+              } />
+              <Route path="customers/:id" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <CustomerDetailPage />
+                </Suspense>
+              } />
+              <Route path="escalations" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <EscalationsPage />
+                </Suspense>
+              } />
+              <Route path="settings" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <SettingsPage />
+                </Suspense>
+              } />
+              <Route path="import" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <ImportPage />
+                </Suspense>
+              } />
+              <Route path="reminders" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <RemindersPage />
+                </Suspense>
+              } />
+              <Route path="interest" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <InterestPage />
+                </Suspense>
+              } />
             </Route>
 
             <Route path="/" element={<LandingPage />} />

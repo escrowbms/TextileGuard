@@ -5,6 +5,8 @@ import { Search, Plus, Download, ArrowUpRight, FileText, X, Receipt, Calendar, U
 import { toast } from "sonner";
 import { createInvoice } from "@/services/invoices";
 import { checkCreditStatus, CreditStatus } from "@/services/customers";
+import { getClauses, Clause } from "@/services/clauses";
+import { Shield, Hammer, MapPin, Hash, Check } from "lucide-react";
 import { useEffect } from "react";
 import { format } from "date-fns";
 
@@ -18,6 +20,10 @@ interface Invoice {
   aging_bucket: string | null;
   customer_name: string;
   customers?: { id: string; name: string; city: string | null };
+  po_number?: string;
+  jurisdiction?: string;
+  delivery_proof_url?: string;
+  eway_bill_number?: string;
 }
 
 interface Customer {
@@ -70,8 +76,12 @@ export function InvoicesClient({
     invoiceNumber: "",
     totalAmount: "",
     dueDate: new Date().toISOString().split('T')[0],
+    poNumber: "",
+    jurisdiction: "Local Jurisdiction Only",
+    clauseIds: [] as string[],
   });
   const [selectedCustomerStatus, setSelectedCustomerStatus] = useState<CreditStatus | null>(null);
+  const [availableClauses, setAvailableClauses] = useState<Clause[]>([]);
 
   useEffect(() => {
     async function getStatus() {
@@ -90,6 +100,16 @@ export function InvoicesClient({
     }
     getStatus();
   }, [formData.customerId]);
+
+  useEffect(() => {
+    async function loadClauses() {
+      if (companyId) {
+        const data = await getClauses(companyId);
+        setAvailableClauses(data);
+      }
+    }
+    loadClauses();
+  }, [companyId]);
 
   const updateFilters = (s: string, st: string, b: string) => {
     const params = new URLSearchParams(searchParams);
@@ -114,6 +134,9 @@ export function InvoicesClient({
       totalAmount: parseFloat(formData.totalAmount) || 0,
       dueDate: new Date(formData.dueDate),
       companyId: companyId,
+      poNumber: formData.poNumber,
+      jurisdiction: formData.jurisdiction,
+      clauseIds: formData.clauseIds,
     });
     if (res.error) {
       setError(res.error);
@@ -121,7 +144,11 @@ export function InvoicesClient({
     } else {
       toast.success("Invoice recorded successfully!");
       setShowAddModal(false);
-      setFormData({ customerId: "", invoiceNumber: "", totalAmount: "", dueDate: new Date().toISOString().split('T')[0] });
+      setFormData({ 
+        customerId: "", invoiceNumber: "", totalAmount: "", 
+        dueDate: new Date().toISOString().split('T')[0],
+        poNumber: "", jurisdiction: "Local Jurisdiction Only", clauseIds: []
+      });
       window.location.reload(); 
     }
     setLoading(false);
@@ -211,6 +238,71 @@ export function InvoicesClient({
                         onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
                         className="w-full pl-11 pr-4 py-4 bg-secondary/30 border border-border/60 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
                       />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-4 h-4 text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Strengthening Layer</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2 ml-1">PO Linkage</label>
+                      <div className="relative">
+                        <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+                        <input
+                          type="text"
+                          value={formData.poNumber}
+                          onChange={e => setFormData({ ...formData, poNumber: e.target.value })}
+                          placeholder="PO-8821"
+                          className="w-full pl-9 pr-4 py-3 bg-background border border-border/60 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 uppercase"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2 ml-1">Jurisdiction</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+                        <input
+                          type="text"
+                          value={formData.jurisdiction}
+                          onChange={e => setFormData({ ...formData, jurisdiction: e.target.value })}
+                          placeholder="City Name"
+                          className="w-full pl-9 pr-4 py-3 bg-background border border-border/60 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2 ml-1">Inject Legal Clauses</label>
+                    <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+                      {availableClauses.map(clause => (
+                        <button
+                          key={clause.id}
+                          type="button"
+                          onClick={() => {
+                            const ids = formData.clauseIds.includes(clause.id)
+                              ? formData.clauseIds.filter(id => id !== clause.id)
+                              : [...formData.clauseIds, clause.id];
+                            setFormData({ ...formData, clauseIds: ids });
+                          }}
+                          className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                            formData.clauseIds.includes(clause.id) 
+                              ? 'bg-primary/10 border-primary text-primary' 
+                              : 'bg-background border-border text-muted-foreground hover:border-primary/40'
+                          }`}
+                        >
+                          <span className="text-[10px] font-bold truncate pr-4">{clause.title}</span>
+                          {formData.clauseIds.includes(clause.id) && <Check className="w-3 h-3 flex-shrink-0" />}
+                        </button>
+                      ))}
+                      {availableClauses.length === 0 && (
+                        <p className="text-[10px] text-muted-foreground italic p-2 border border-dashed border-border rounded-xl">No templates found. Set them up in Settings.</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -412,14 +504,31 @@ export function InvoicesClient({
                 >
                   <td className="px-8 py-6">
                     <p className="font-mono text-[10px] font-black text-primary tracking-widest uppercase">{inv.invoice_number}</p>
-                    <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
+                    <div className="flex items-center gap-1.5 mt-1 text-muted-foreground group-hover:text-primary transition-colors">
                       <Calendar className="w-3 h-3" />
                       <p className="text-[10px] font-medium tracking-tight">Due {new Date(inv.due_date).toLocaleDateString()}</p>
                     </div>
+                    {inv.po_number && (
+                      <div className="flex items-center gap-1.5 mt-1 text-emerald-500 font-bold">
+                        <Check className="w-3 h-3" />
+                        <p className="text-[10px] tracking-tight uppercase">PO: {inv.po_number}</p>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-6">
                     <p className="font-extrabold text-sm tracking-tight group-hover:text-primary transition-colors">{inv.customer_name}</p>
                     <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{inv.customers?.city || 'N/A'}</p>
+                  </td>
+                  <td className="px-6 py-6">
+                    <p className="text-[10px] font-black uppercase text-muted-foreground mb-1 tracking-widest">Enforcement</p>
+                    <div className="flex flex-col gap-1">
+                      <div className={`text-[10px] font-bold ${inv.po_number ? 'text-emerald-500' : 'text-muted-foreground/40'}`}>
+                        {inv.po_number ? '✓ PO LINKED' : '○ NO PO'}
+                      </div>
+                      <div className={`text-[10px] font-bold ${inv.eway_bill_number ? 'text-emerald-500' : 'text-muted-foreground/40'}`}>
+                        {inv.eway_bill_number ? '✓ E-WAY READY' : '○ NO POD'}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-6 py-6 text-right">
                     <p className="font-black text-sm">₹{inv.balance_due.toLocaleString('en-IN')}</p>

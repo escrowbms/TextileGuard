@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { getUserByFirebaseUid } from '@/services/user';
-import { syncErpData, parseTallyXml, SyncResult, ErpCustomer, ErpInvoice } from '@/services/erp';
+import { syncErpData, parseTallyXml, parseErpCsv, SyncResult, ErpCustomer, ErpInvoice } from '@/services/erp';
 import { toast } from 'sonner';
 
 export default function ImportClient() {
@@ -36,15 +36,37 @@ export default function ImportClient() {
       const content = event.target?.result as string;
       setXmlContent(content);
       try {
-        const data = parseTallyXml(content);
+        let data;
+        if (file.name.endsWith('.csv')) {
+          data = parseErpCsv(content);
+        } else {
+          data = parseTallyXml(content);
+        }
+        
+        if (data.customers.length === 0 && data.invoices.length === 0) {
+          throw new Error("No valid data found in file");
+        }
+
         setParsedData(data);
         setStep(2);
-        toast.success("File parsed successfully");
-      } catch (err) {
-        toast.error("Failed to parse XML. Ensure it's a valid Tally export.");
+        toast.success(`Parsed ${data.invoices.length} invoices from ${file.name}`);
+      } catch (err: any) {
+        toast.error(err.message || "Failed to parse file. Check format.");
       }
     };
     reader.readAsText(file);
+  };
+
+  const downloadSampleCsv = () => {
+    const headers = "Customer Name,Phone,GST,Invoice #,Invoice Date (YYYY-MM-DD),Amount\n";
+    const sample = "Acme Textiles,+919876543210,27AABCA1234B1Z5,INV-001,2025-04-10,50000\nGlobal Fabrics,,27BBCDE5678F2Z1,INV-002,2025-03-15,120000";
+    const blob = new Blob([headers + sample], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'textileguard_import_sample.csv';
+    a.click();
+    toast.info("Sample CSV downloaded");
   };
 
   const startSync = async () => {
@@ -113,22 +135,30 @@ export default function ImportClient() {
 
             {/* Manual Paste */}
             <div className="glass rounded-3xl p-8 flex flex-col border border-border">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-muted-foreground" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-bold">Paste Raw XML/JSON</h3>
                 </div>
-                <h3 className="text-lg font-bold">Paste Raw XML/JSON</h3>
+                <button 
+                  onClick={downloadSampleCsv}
+                  className="text-[10px] font-black uppercase text-primary hover:underline"
+                >
+                  Download Sample CSV
+                </button>
               </div>
               <textarea 
                 className="flex-1 bg-secondary/50 rounded-2xl p-4 text-sm font-mono border border-border focus:ring-2 ring-primary/20 outline-none resize-none min-h-[200px]"
-                placeholder="<ENVELOPE>...</ENVELOPE>"
+                placeholder="<ENVELOPE> or CSV: Name,Phone,GST,Inv#,Date,Amount"
                 value={xmlContent}
                 onChange={(e) => setXmlContent(e.target.value)}
               />
               <button 
                 onClick={() => {
                    try {
-                     const data = parseTallyXml(xmlContent);
+                     const data = xmlContent.trim().startsWith('<') ? parseTallyXml(xmlContent) : parseErpCsv(xmlContent);
                      setParsedData(data);
                      setStep(2);
                      toast.success("Content parsed successfully");

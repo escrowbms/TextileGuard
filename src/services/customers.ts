@@ -5,8 +5,11 @@ export interface Customer {
   name: string;
   email: string | null;
   phone: string | null;
+  city: string | null;
+  gst_number: string | null;
   category: string;
   risk_score: number;
+  risk_level: string;
   status: string;
   credit_limit: number;
   total_receivables: number;
@@ -31,11 +34,17 @@ export const getCustomers = async (
     .select('*')
     .eq('company_id', companyId);
 
-  if (risk && risk !== 'all') {
-    // Basic risk filtering logic
-    if (risk === 'high') query = query.gt('risk_score', 70);
-    else if (risk === 'medium') query = query.gte('risk_score', 30).lte('risk_score', 70);
-    else if (risk === 'low') query = query.lt('risk_score', 30);
+  if (risk && risk.toLowerCase() !== 'all') {
+    const r = risk.toLowerCase();
+    if (r === 'critical') query = query.gte('risk_score', 85);
+    else if (r === 'high') query = query.gte('risk_score', 60).lt('risk_score', 85);
+    else if (r === 'medium') query = query.gte('risk_score', 30).lt('risk_score', 60);
+    else if (r === 'low') query = query.lt('risk_score', 30);
+  }
+
+  if (search && search.trim() !== '') {
+    const s = `%${search.trim()}%`;
+    query = query.or(`name.ilike.${s},gst_number.ilike.${s},city.ilike.${s}`);
   }
 
   const { data, error } = await query.order('name');
@@ -51,6 +60,7 @@ export const getCustomers = async (
 export const createCustomer = async (data: {
   name: string;
   email?: string;
+  phone?: string;
   city?: string;
   gstNumber?: string;
   creditLimit: number;
@@ -61,13 +71,14 @@ export const createCustomer = async (data: {
     .insert({
       name: data.name,
       email: data.email,
+      phone: data.phone,
       city: data.city,
       gst_number: data.gstNumber,
       credit_limit: data.creditLimit,
       company_id: data.companyId,
       status: 'active',
-      risk_score: 0,      // No history = no risk yet
-      risk_level: 'low',  // Will be recalculated once invoices are added
+      risk_score: 0,
+      risk_level: 'low',
     });
 
   return { error: error?.message };
@@ -193,3 +204,20 @@ export const calculateAndUpdateRiskScore = async (customerId: string): Promise<n
 
   return roundedScore;
 };
+
+export const recalculateAllRiskScores = async (companyId: string) => {
+  const { data: customers } = await supabase
+    .from('customers')
+    .select('id')
+    .eq('company_id', companyId);
+
+  if (!customers) return;
+
+  const results = await Promise.all(
+    customers.map(c => calculateAndUpdateRiskScore(c.id))
+  );
+
+  return results.length;
+};
+
+export const calculateRiskLevel = calculateAndUpdateRiskScore;

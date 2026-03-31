@@ -12,5 +12,18 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) return 'vendor-react';
+            if (id.includes('framer-motion') || id.includes('lucide-react')) return 'vendor-ui';
+            if (id.includes('firebase') || id.includes('supabase')) return 'vendor-db';
+            return 'vendor';
+          }
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
   },
 });
