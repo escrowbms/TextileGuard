@@ -13,6 +13,8 @@ const SettingsPage = lazy(() => import('@/app/dashboard/settings/page'));
 const ImportPage = lazy(() => import('@/app/dashboard/import/page'));
 const RemindersPage = lazy(() => import('@/app/dashboard/reminders/page'));
 const InterestPage = lazy(() => import('@/app/dashboard/interest/page'));
+const AdminPage = lazy(() => import('@/app/admin/page'));
+const AdminLoginPage = lazy(() => import('@/app/admin/login'));
 
 const LoadingFallback = () => (
   <div className="p-8 text-center text-muted-foreground animate-pulse font-bold tracking-widest uppercase text-[10px]">
@@ -23,7 +25,9 @@ import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/lib/auth-context';
+import { AdminAuthProvider } from '@/lib/admin-auth-context';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import AdminGuard from '@/components/AdminGuard';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -49,7 +53,8 @@ const App: React.FC = () => {
     <Router>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         <AuthProvider>
-          <Toaster position="top-right" richColors />
+          <AdminAuthProvider>
+            <Toaster position="top-right" richColors duration={1000} />
           <Routes>
             <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
             
@@ -101,8 +106,23 @@ const App: React.FC = () => {
               } />
             </Route>
 
+            <Route path="/admin" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <AdminGuard>
+                  <AdminPage />
+                </AdminGuard>
+              </Suspense>
+            } />
+
+            <Route path="/admin/login" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <AdminLoginPage />
+              </Suspense>
+            } />
+
             <Route path="/" element={<LandingPage />} />
           </Routes>
+          </AdminAuthProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>

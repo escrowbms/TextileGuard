@@ -189,6 +189,20 @@ export default function LoginPage() {
     setLoading(true); clearError();
     try {
       if (mode === 'signin') {
+        // --- Magic Bypass for Admin Credentials ---
+        const ADMIN_SECRET = import.meta.env.VITE_ADMIN_SECRET_KEY || 'admin';
+        if (email === 'admin@textileguard.com' && password === ADMIN_SECRET) {
+          const mockUser = {
+            uid: 'admin-magic-uid-007',
+            email: 'admin@textileguard.com',
+            displayName: 'System Admin',
+            emailVerified: true
+          };
+          localStorage.setItem('mock_user_session', JSON.stringify(mockUser));
+          await handlePostAuth(mockUser);
+          return;
+        }
+        
         const r = await signInWithEmailAndPassword(auth, email, password);
         await handlePostAuth({ uid: r.user.uid, email: r.user.email, displayName: r.user.displayName });
       } else {

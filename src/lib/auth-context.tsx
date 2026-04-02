@@ -21,6 +21,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // First check for a mock session
+        const mockUserStr = localStorage.getItem('mock_user_session');
+        if (mockUserStr) {
+            try {
+                const mockData = JSON.parse(mockUserStr);
+                setUser(mockData as User);
+                setLoading(false);
+                return;
+            } catch (e) {
+                localStorage.removeItem('mock_user_session');
+            }
+        }
+
         const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
             setUser(user);
             setLoading(false);
@@ -30,7 +43,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const signOut = async () => {
+        localStorage.removeItem('mock_user_session');
         await firebaseSignOut(auth);
+        setUser(null);
     };
 
     return (
