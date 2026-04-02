@@ -32,6 +32,7 @@ export default function DashboardPage() {
     remindersCount: number;
     concentration: any[];
   } | null>(null);
+  const [compId, setCompId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -44,6 +45,7 @@ export default function DashboardPage() {
           setLoading(false);
           return;
         }
+        setCompId(appUser.companyId);
 
         const [stats, aging, critical, analytics, reminders, concentration] = await Promise.all([
           getDashboardStats(appUser.companyId),
@@ -248,6 +250,7 @@ export default function DashboardPage() {
       remindersCount={data.remindersCount}
       concentrationData={data.concentration}
       analytics={data.analytics}
+      companyId={compId || ''}
       onTriggerSync={handleTriggerSync}
     />
   );

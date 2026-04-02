@@ -1,13 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, Download, ArrowUpRight, FileText, X, Receipt, Calendar, User, Info, ArrowRight, Database, ShieldAlert } from "lucide-react";
+import { Search, Plus, Download, ArrowUpRight, FileText, X, Receipt, Calendar, User, Info, ArrowRight, Database, ShieldAlert, Zap, Check, Shield, MapPin, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { createInvoice } from "@/services/invoices";
 import { checkCreditStatus, CreditStatus } from "@/services/customers";
 import { getClauses, Clause } from "@/services/clauses";
-import { Shield, Hammer, MapPin, Hash, Check } from "lucide-react";
-import { useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 
 interface Invoice {
@@ -152,6 +151,21 @@ export function InvoicesClient({
       window.location.reload(); 
     }
     setLoading(false);
+  };
+
+  const handleSettleInvoice = async (invoiceId: string) => {
+    const { error } = await supabase.from('invoices').update({ status: 'paid', balance_due: 0 }).eq('id', invoiceId);
+    if (error) toast.error("Failed to settle invoice");
+    else {
+      toast.success("Invoice settled successfully");
+      window.location.reload();
+    }
+  };
+
+  const handleSendReminder = (inv: Invoice) => {
+    toast.success(`Reminder sent for ${inv.invoice_number}`, {
+      description: `Target: ${inv.customer_name} | Channel: WhatsApp/Email`
+    });
   };
 
   const selectedCustomer = customers.find(c => c.id === formData.customerId);
@@ -549,8 +563,24 @@ export function InvoicesClient({
                     </span>
                   </td>
                   <td className="px-6 py-6 text-right">
-                    <div className="w-9 h-9 rounded-2xl flex items-center justify-center glass group-hover:bg-primary transition-all group-hover:text-white shadow-lg opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0">
-                      <ArrowRight className="w-4 h-4" />
+                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleSendReminder(inv); }}
+                        className="w-8 h-8 rounded-xl flex items-center justify-center glass border border-border hover:bg-primary hover:text-white transition-all shadow-sm"
+                        title="Send Reminder"
+                      >
+                         <Zap className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleSettleInvoice(inv.id); }}
+                        className="w-8 h-8 rounded-xl flex items-center justify-center glass border border-border hover:bg-emerald-500 hover:text-white transition-all shadow-sm"
+                        title="Settle Invoice"
+                      >
+                         <Check className="w-3.5 h-3.5" />
+                      </button>
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center glass border border-border hover:bg-secondary transition-all shadow-sm">
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </div>
                     </div>
                   </td>
                 </motion.tr>

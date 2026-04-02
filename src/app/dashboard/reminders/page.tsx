@@ -182,7 +182,7 @@ export default function RemindersPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
           >
-            <RecoveryView items={recoveryItems} />
+            <RecoveryView items={recoveryItems} companyId={companyId || ''} />
           </motion.div>
         )}
       </AnimatePresence>

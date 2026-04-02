@@ -1,7 +1,10 @@
 'use client';
 
 import { motion } from "framer-motion";
-import { TrendingUp, FileText, Download, IndianRupee, Clock } from "lucide-react";
+import { TrendingUp, FileText, Download, IndianRupee, Clock, Loader2, CheckCircle } from "lucide-react";
+import { createDebitNote } from "@/services/invoices";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface RecoveryItem {
   id: string;
@@ -13,8 +16,31 @@ interface RecoveryItem {
   rateUsed: number;
 }
 
-export function RecoveryView({ items }: { items: RecoveryItem[] }) {
+export function RecoveryView({ items, companyId }: { items: RecoveryItem[], companyId: string }) {
+  const [creatingId, setCreatingId] = useState<string | null>(null);
   const totalPotential = items.reduce((sum, item) => sum + item.suggestedInterest, 0);
+
+  const handleCreateDebitNote = async (item: RecoveryItem) => {
+    if (!companyId) return;
+    setCreatingId(item.id);
+    try {
+       const { error } = await createDebitNote({
+         customerId: item.id.split('_')[0], // Extract customer_id if it was composite
+         amount: item.suggestedInterest,
+         reason: `Interest for late payment of #${item.invoiceNumber}`,
+         companyId
+       });
+       if (!error) {
+         toast.success(`Debit Note for ₹${item.suggestedInterest} created.`);
+       } else {
+         toast.error("Failed to create debit note.");
+       }
+    } catch (err) {
+       toast.error("System error during recovery enforcement.");
+    } finally {
+       setCreatingId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -84,7 +110,12 @@ export function RecoveryView({ items }: { items: RecoveryItem[] }) {
                     ₹{item.suggestedInterest.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-[10px] font-extrabold text-primary hover:underline">
+                    <button 
+                      onClick={() => handleCreateDebitNote(item)}
+                      disabled={creatingId === item.id}
+                      className="text-[10px] font-extrabold text-primary hover:underline flex items-center justify-end gap-2 ml-auto"
+                    >
+                      {creatingId === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                       CREATE DEBIT NOTE
                     </button>
                   </td>

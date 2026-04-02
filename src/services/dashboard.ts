@@ -30,10 +30,12 @@ export const getDashboardStats = async (companyId: string): Promise<DashboardSta
 
   let receivables = 0;
   let overdue = 0;
+  let collected = 0;
   invoices?.forEach(inv => {
     const amt = Number(inv.balance_due);
     receivables += amt;
     if (inv.status === 'overdue') overdue += amt;
+    if (inv.status === 'paid') collected += amt;
   });
 
   // Total Customers & Frozen
@@ -51,7 +53,7 @@ export const getDashboardStats = async (companyId: string): Promise<DashboardSta
   return {
     receivables,
     overdue,
-    collected: 0, // Mock/Logic to be added if needed
+    collected,
     totalCustomers: totalCustomers || 0,
     frozenCustomers: frozenCustomers || 0,
   };

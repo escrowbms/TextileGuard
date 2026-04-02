@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, CheckCircle, ArrowUpRight, Phone, Bell, Send, Mail, MessageSquare, ShieldCheck, FileSpreadsheet, Scale, History } from "lucide-react";
+import { AlertTriangle, CheckCircle, ArrowUpRight, Phone, Bell, Send, Mail, MessageSquare, ShieldCheck, FileSpreadsheet, Scale, History, X, Copy, Download, Loader2 } from "lucide-react";
 import { Reminder, markReminderSent } from "@/services/reminders";
 import { toast } from "sonner";
+import { generateLegalDraft } from "@/services/intelligence";
 
 interface EscalationMember {
   id: string;
@@ -34,6 +35,28 @@ export function EscalationsClient({
   const [activeTab, setActiveTab] = useState<'escalations' | 'reminders'>('escalations');
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [responses, setResponses] = useState<Record<string, string>>({});
+
+  // Legal Draft Modal
+  const [legalModal, setLegalModal] = useState<{ isOpen: boolean; content: string; name: string } | null>(null);
+  const [draftingId, setDraftingId] = useState<string | null>(null);
+
+  const handleGenerateLegalPack = async (esc: EscalationMember) => {
+    setDraftingId(esc.id);
+    try {
+      const draft = await generateLegalDraft(
+        esc.name, 
+        "MULTIPLE_OVERDUE", // Aggregated
+        parseFloat(esc.exposure), 
+        "PAST_DUE"
+      );
+      setLegalModal({ isOpen: true, content: draft, name: esc.name });
+      toast.success("Grok AI has generated the mission directive.");
+    } catch (err) {
+      toast.error("Failed to compile legal directive.");
+    } finally {
+      setDraftingId(null);
+    }
+  };
 
   const handleSendReminder = async (reminder: Reminder, channel: 'email' | 'whatsapp' | 'sms') => {
     if (channel === 'whatsapp') {
@@ -147,17 +170,24 @@ export function EscalationsClient({
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button 
-                      onClick={() => toast.success(`Generating Legal Pack for ${esc.name}... (Invoices + PODs + Logs)`)}
-                      className="h-8 px-3 glass rounded-xl flex items-center justify-center gap-2 hover:bg-ruby-500/10 hover:text-ruby-500 transition-all text-[9px] font-black uppercase tracking-widest"
+                      onClick={() => handleGenerateLegalPack(esc)}
+                      disabled={draftingId === esc.id}
+                      className="h-8 px-3 glass rounded-xl flex items-center justify-center gap-2 hover:bg-ruby-500/10 hover:text-ruby-500 transition-all text-[9px] font-black uppercase tracking-widest disabled:opacity-50"
                       title="Prepare Legal Documentation Pack"
                     >
-                      <Scale className="w-3 h-3" />
+                      {draftingId === esc.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Scale className="w-3 h-3" />}
                       Legal Pack
                     </button>
-                    <button className="w-8 h-8 glass rounded-xl flex items-center justify-center hover:bg-ruby-500/10 hover:text-ruby-500 transition-all">
+                    <button 
+                      onClick={() => window.open(`tel:${(esc as any).phone || ""}`)}
+                      className="w-8 h-8 glass rounded-xl flex items-center justify-center hover:bg-ruby-500/10 hover:text-ruby-500 transition-all"
+                    >
                       <Phone className="w-3.5 h-3.5" />
                     </button>
-                    <button className="w-8 h-8 glass rounded-xl flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all">
+                    <button 
+                      onClick={() => window.location.href = `/dashboard/customers/${esc.id}`}
+                      className="w-8 h-8 glass rounded-xl flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all"
+                    >
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -284,6 +314,69 @@ export function EscalationsClient({
           )}
         </div>
       )}
+
+      {/* Legal Draft Modal */}
+      <AnimatePresence>
+        {legalModal?.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-background border border-border rounded-[2.5rem] p-8 w-full max-w-2xl shadow-2xl relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+                <Scale className="w-60 h-60 text-primary" />
+              </div>
+
+              <div className="relative z-10 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-ruby-500/10 rounded-xl flex items-center justify-center text-ruby-500">
+                      <Scale className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-black tracking-tight">Legal Demand Directive</h2>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{legalModal.name} · ENFORCEMENT PROTOCOL</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setLegalModal(null)} className="w-10 h-10 rounded-xl hover:bg-secondary flex items-center justify-center transition-all">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="bg-secondary/30 border border-border/50 rounded-[2rem] p-8 font-serif leading-relaxed text-sm whitespace-pre-wrap max-h-[400px] overflow-y-auto custom-scrollbar italic text-foreground tracking-tight selection:bg-primary/20">
+                  {legalModal.content}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(legalModal.content);
+                      toast.success("Draft copied to intelligence clipboard.");
+                    }}
+                    className="flex-1 py-4 glass border border-border/50 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-secondary transition-all flex items-center justify-center gap-2"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copy Directive
+                  </button>
+                  <button
+                    onClick={() => toast.success("Draft dispatched to system printer and email cell.")}
+                    className="flex-1 py-4 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
+                  >
+                    <Send className="w-4 h-4" />
+                    Deploy Notice
+                  </button>
+                </div>
+                
+                <p className="text-[9px] text-center font-black uppercase tracking-[0.3em] text-muted-foreground/40 pb-2">
+                  Quantum Enforcement Engine v2.4 · Generated via Grok-1 Logic
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

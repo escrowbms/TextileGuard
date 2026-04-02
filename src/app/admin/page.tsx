@@ -6,7 +6,7 @@ import {
   Ban, CheckCircle, AlertTriangle, Activity, BarChart3, 
   ArrowUpRight, IndianRupee, LayoutDashboard, Database, Cpu,
   RefreshCw, History, ShieldAlert, LogOut, Edit2, UserCog,
-  Lock, Unlock, Eye, Radio
+  Lock, Unlock, Eye, Radio, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -48,12 +48,14 @@ export default function AdminPage() {
   });
   const [usersList, setUsersList] = useState<AdminUser[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'system'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'system' | 'grok_ai'>('overview');
   const [chartData, setChartData] = useState<{name: string, value: number}[]>([]);
   const [settings, setSettings] = useState<Record<string, boolean>>({
     maintenance_mode: false,
     public_signups: true,
-    trial_extension: false
+    trial_extension: false,
+    ai_forecasting: true,
+    gst_compliance: true
   });
   const [adminLogs, setAdminLogs] = useState<{id: string, action: string, created_at: string}[]>([]);
   const [broadcastMessage, setBroadcastMessage] = useState('');
@@ -289,7 +291,7 @@ export default function AdminPage() {
               <LogOut className="w-5 h-5" />
             </button>
             <div className="flex bg-secondary/50 p-1.5 rounded-[1.5rem] border border-border/50 backdrop-blur-md">
-              {['overview', 'users', 'system'].map((tab) => (
+              {['overview', 'users', 'system', 'grok_ai'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab as any)}
@@ -592,6 +594,90 @@ export default function AdminPage() {
                       </div>
                       <span>Target: All Operators</span>
                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'grok_ai' && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="glass p-10 rounded-[3rem] border border-border bg-white dark:bg-zinc-900 shadow-xl shadow-black/5">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-3 bg-primary/10 rounded-2xl">
+                    <Cpu className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black uppercase tracking-tighter">Grok AI Collection Model</h3>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1 tracking-widest">Global Heuristic Engine</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-8 font-medium leading-relaxed italic">The Grok AI engine analyzes historical payment delays, risk scores, and market trends to predict deterministic "Expected Payment Dates" for every active invoice.</p>
+                <div className="flex items-center justify-between p-6 bg-secondary/30 border border-border rounded-[2rem]">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest">Status: {settings.ai_forecasting ? 'Grok OPERATIONAL' : 'Grok OFFLINE'}</span>
+                    <p className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider">Direct influence on ROI Metrics</p>
+                  </div>
+                  <div 
+                    onClick={() => handleToggleSetting('ai_forecasting')}
+                    className={`w-14 h-7 rounded-full p-1 cursor-pointer transition-all ${settings.ai_forecasting ? 'bg-primary' : 'bg-muted'}`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform ${settings.ai_forecasting ? 'translate-x-7' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass p-10 rounded-[3rem] border border-border bg-white dark:bg-zinc-900 shadow-xl shadow-black/5">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-3 bg-amber-500/10 rounded-2xl">
+                    <ShieldCheck className="w-8 h-8 text-amber-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black uppercase tracking-tighter">GST Compliance Tracker</h3>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1 tracking-widest">Entity Integrity Monitor</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-8 font-medium leading-relaxed italic">Monitors external filing patterns. Any non-compliance or delay in GST filings triggers an instant risk elevation across the platform.</p>
+                <div className="flex items-center justify-between p-6 bg-secondary/30 border border-border rounded-[2rem]">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest">Status: {settings.gst_compliance ? 'OPERATIONAL' : 'OFFLINE'}</span>
+                    <p className="text-[9px] text-amber-500 font-bold uppercase tracking-wider">Cross-referenced with payment speed</p>
+                  </div>
+                  <div 
+                    onClick={() => handleToggleSetting('gst_compliance')}
+                    className={`w-14 h-7 rounded-full p-1 cursor-pointer transition-all ${settings.gst_compliance ? 'bg-primary' : 'bg-muted'}`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform ${settings.gst_compliance ? 'translate-x-7' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass p-12 rounded-[4rem] border border-black bg-black text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-12 opacity-10">
+                <Activity className="w-48 h-48 text-white animate-pulse" />
+              </div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-8">
+                  <Zap className="w-10 h-10 text-primary" />
+                  <h3 className="text-3xl font-black uppercase tracking-tighter">Tactical Enforcement</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                  <div className="space-y-4">
+                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400">Grok-Algorithmic Trigger</h4>
+                    <p className="text-sm font-medium italic text-zinc-300 leading-relaxed">System-wide auto-escalation path is currently controlled via clearance levels. Grok-assisted triggers can bypass manual reviews if "Deterministic Confidence" exceeds 95%.</p>
+                  </div>
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between pb-6 border-b border-zinc-800">
+                      <span className="text-[10px] font-black uppercase tracking-widest">Auto-Lock defaulters</span>
+                      <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">PRE-READY</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-6 border-b border-zinc-800">
+                      <span className="text-[10px] font-black uppercase tracking-widest">Senior management auto-alert</span>
+                      <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">ACTIVE</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

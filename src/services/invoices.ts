@@ -119,3 +119,38 @@ export const createInvoice = async (data: {
 
   return { error: error?.message };
 };
+
+export const settleInvoice = async (invoiceId: string) => {
+  const { error } = await supabase
+    .from('invoices')
+    .update({ 
+      status: 'paid',
+      balance_due: 0
+    })
+    .eq('id', invoiceId);
+  
+  return { error: error?.message };
+};
+
+export const createDebitNote = async (data: {
+  customerId: string;
+  amount: number;
+  reason: string;
+  companyId: string;
+}) => {
+  const { error } = await supabase
+    .from('invoices')
+    .insert({
+      customer_id: data.customerId,
+      invoice_number: `DN-${Date.now().toString().slice(-6)}`,
+      total_amount: data.amount,
+      balance_due: data.amount,
+      due_date: new Date().toISOString(),
+      company_id: data.companyId,
+      status: 'pending',
+      po_number: 'INT-RECOVERY',
+      jurisdiction: 'Interest Penal Charge',
+    });
+
+  return { error: error?.message };
+};
