@@ -1,99 +1,104 @@
 # 🛡️ TextileGuard: Receivable Enforcement Infrastructure
 
-**"ERP stores data. TextileGuard enforces discipline."**
+"ERP stores data. TextileGuard enforces discipline."
 
-TextileGuard is a high-performance SaaS platform built specifically for the textile and manufacturing industries. It moves beyond passive accounting logs by actively enforcing payment discipline through automated cloud-workers, multi-channel nudges, and a penal interest recovery engine.
-
----
-
-## 🚀 Key Features
-
-### 1. ☁️ Automated Cloud Enforcement
-- **Edge Functions**: Background workers scanning for overdue invoices daily.
-- **Smart Queueing**: Automatically prioritizes high-risk buyers for escalations.
-1. **Sync Pulse**: Real-time heartbeat monitoring for your automation infrastructure.
-
-### 2. 📈 Interest Recovery Engine (Blocked Capital)
-- **Automatic Calculation**: Detects penal interest opportunities (default @ 18% or custom).
-- **Recovery Ledger**: Detailed view of capital lost due to payment delays.
-- **Debit Note Generation**: Suggests the exact recovery value for late-paying customers.
-
-### 3. 💬 multi-Channel Reminders (Zero-Cost)
-- **WhatsApp Nudges**: Deep-linked, zero-cost WhatsApp reminders that open directly from your phone.
-- **Email & SMS Escalations**: Tiered reminder system (e.g., 7 days, 15 days, 30 days overdue).
-- **Reminders Center**: Centralized inbox for all pending recovery actions.
-
-### 4. 📂 Enterprise Data Pipeline
-- **ERP Integration**: XML Parser for Tally Prime, Tally.ERP 9, and Busy.
-- **Bulk Import**: Process thousands of invoices and ledger entries in seconds.
-- **Real-Time Mapping**: Seamlessly joins customer data with aging invoices.
-
-### 5. 🏠 Dashboard & Risk Monitoring
-- **Global Credit Limits**: Visual alerts when buyers exceed safe thresholds.
-- **Exposure Analytics**: Total risk distribution by city, amount, and age.
-- **Risk Escalations**: Specialized "High Priority" view for accounts requiring immediate attention.
+TextileGuard is a high-performance, industrial-grade SaaS platform designed to solve the chronic credit-control crisis in the textile and manufacturing sectors. It transforms passive accounting entries into active recovery protocols through automated enforcement, penal interest recovery, and a veteran-designed administrative command center.
 
 ---
 
-## 🛠️ Technology Stack
+## 🚀 Core Platform Functionality
 
-| Layer | Technology |
-| :--- | :--- |
-| **Frontend** | React 18 (Vite), Tailwind CSS, Framer Motion |
-| **Backend** | Supabase (PostgreSQL), Edge Functions (Deno) |
-| **Auth** | Firebase Authentication (JWT) |
-| **Hosting** | Firebase Hosting |
-| **Database** | PostgreSQL with Row Level Security (RLS) |
+### 1. ☁️ Automated Cloud Enforcement (RECEIVABLE SURVEILLANCE)
+
+- **Real-Time Heartbeat**: Automated background workers scan the database every 24 hours to detect overdue invoices.
+- **Smart Queueing**: Uses advanced risk-heuristics to prioritize high-value overdue accounts for immediate follow-up.
+
+### 2. 📈 Penal Interest Recovery Engine (CAPITAL RECLAMATION)
+
+- **Automatic Interest Calculation**: Automatically detects any payment delay beyond the grace period and calculates penal interest (standard @ 18% or custom).
+- **Interest Ledgers**: A specialized dashboard showing exactly how much capital a company has lost to delayed payments.
+- **Debit Note Generation**: Provides clear recovery value suggestions for every late-paying customer.
+
+### 3. 💬 multi-Channel Reminders (NATIVE ESCALATIONS)
+
+- **WhatsApp Nudges**: Deep-linked reminders that allow operators to send official pay-notices directly from their authorized mobile devices with zero external API costs.
+- **Tiered Escalations**: Automatic reminder triggers at 7, 15, and 30 days overdue, ensuring persistent follow-up.
+- **Reminders Management Center**: A dedicated inbox for tracking sent reminders and pending follow-ups.
+
+### 4. 📂 Enterprise Data Pipeline (BULK SYNCHRONIZATION)
+
+- **XML Data Parser**: Purpose-built importers for Tally Prime, Tally.ERP 9, and Busy (Standard XML Export).
+- **High-Speed Processing**: Import thousands of ledger entries, invoices, and customer entities in seconds.
+- **Schema Validation**: Ensures all financial data is formatted correctly before entering the production environment.
+
+### 5. 🏠 Dashboard & Risk Intelligence (STRATEGIC OVERSIGHT)
+
+- **Exposure Metric**: Real-time view of total outstanding and total overdue capital.
+- **Aging Distribution**: Granular breakdown of receivables (0-30, 31-60, 61-90, 90+ days).
+- **Credit Limit Alerts**: Immediate visual warnings when a buyer exceeds their pre-configured credit threshold.
+
+### 6. 🛡️ SuperAdmin Command Center (THE MATRIX)
+
+- **Entity Management**: Comprehensive grid to monitor, suspend, or terminate company-user accounts.
+- **System Protocols**: Global toggles for Maintenance Mode, Public Signups, and Trial Extensions.
+- **System Broadcast**: Deploy platform-wide directives and emergency alerts to all active users.
+- **Audit Trail**: Real-time persistence of every administrative action for total transparency.
+- **Administrative Transparency**: Filtered user list to keep SuperAdmin credentials separate from the operator pool.
 
 ---
 
-## 🔒 Security & Multi-Tenancy
+## 🛠️ Technology Stack (PRODUCTION MATURITY)
 
-TextileGuard is built for strict data isolation.
-- **Row Level Security (RLS)**: Every single query is locked by `company_id` at the database level.
-- **Zero-Cross Leakage**: A user from Company A can never, under any circumstance, see data from Company B.
-- **Audit Logs**: All reminders and status changes are tracked with timestamps.
+| Layer | Technology | Infrastructure |
+| :--- | :--- | :--- |
+| **Frontend** | React 18 / Vite | Firebase Hosting (CDN) |
+| **Backend** | Supabase (v2) | PostgreSQL / Edge Functions |
+| **Auth** | Firebase Auth | JWT Secure Sessions |
+| **Styling** | Vanilla CSS / Tailored | Veteran High-Contrast UI |
+| **Charts** | Recharts | Real-time Analytics |
 
 ---
 
-## 💻 Getting Started
+## 🔒 Security & Data Sovereignty
+
+- **Row Level Security (RLS)**: Every single query is strictly isolated by `company_id`. No cross-company data leakage is physically possible at the database level.
+- **Bypass Protection**: SuperAdmin access is protected by a dual-layer credential system and an environment-locked `VITE_ADMIN_SECRET_KEY`.
+- **Veteran Aesthetics**: Optimized for high-contrast, scroll-free operation using tactical typography (Times New Roman) and zero-opacity fonts for maximum legibility.
+
+---
+
+## 💻 Getting Started (DEVELOPMENT)
 
 ### Prerequisites
-- Node.js 18+
-- Supabase Account
-- Firebase Project
 
-### Installation
-1. Clone the repository:
+- Node.js 18+
+- Supabase Cloud Project
+- Firebase Hosting Project
+
+### Installation & Deployment
+
+1. **Clone & Setup**:
+
    ```bash
    git clone https://github.com/escrowbms/TextileGuard.git
-   cd TextileGuard
-   ```
-
-2. Install dependencies:
-   ```bash
    npm install
    ```
 
-3. Configure Environment Variables (`.env`):
-   ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_key
-   VITE_FIREBASE_API_KEY=your_firebase_key
-   ...
-   ```
+2. **Environment Configuration**:
 
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
+   Create a `.env` file with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_FIREBASE_CONFIG`, and `VITE_ADMIN_SECRET_KEY`.
 
-5. Build for production:
+3. **Build & Deploy**:
+
    ```bash
    npm run build
+   firebase deploy
    ```
 
 ---
 
-## 📄 License
-Copyright © 2026 EscrowBMS. All rights reserved. Proprietary software for Textile Receivable Management.
+## 📄 Platform Governance
+
+Copyright © 2026 EscrowBMS. All rights reserved.
+
+"TextileGuard is the infrastructure for capital discipline."

@@ -1,47 +1,36 @@
 # Dependencies
-node_modules
-/.pnp
+node_modules/
+.pnp
 .pnp.js
 
-# Testing
-/coverage
-
-# Production
-/dist
-/build
-/.next/
-/out/
+# Production / Build
+dist/
+dist-ssr/
+build/
+.next/
+out/
 
 # Env & Secrets
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local.php
-.env.backup
 .env.*
+*.local
+secrets.json
 
-# Firebase
-.firebase
+# Firebase & Hosting
+.firebase/
+firebase-debug.log*
+ui-debug.log*
 firestore.indexes.json
 firestore.rules
 storage.rules
-*.log
-firebase-debug.log*
-ui-debug.log*
 
 # Supabase
 supabase/.temp/
 supabase/functions/.env
+.supabase/
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# OS Files
+# OS / Systems
 .DS_Store
 Thumbs.db
 .vscode/
@@ -49,6 +38,10 @@ Thumbs.db
 *.swp
 *.swo
 
-# Misc
-.vercel
-.turbo
+# Tools
+.vercel/
+.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
