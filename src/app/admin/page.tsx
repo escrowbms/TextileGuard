@@ -255,8 +255,10 @@ export default function AdminPage() {
   // We can skip the inline check and just render.
   
   const filteredUsers = usersList.filter(u => 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.company_name.toLowerCase().includes(searchTerm.toLowerCase())
+    u.role !== 'admin' && (
+      u.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      u.company_name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   const statsCards = [
